@@ -1,0 +1,270 @@
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html {
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+}
+
+/* Theme Variables */
+:root {
+  /* Blue Theme */
+  --blue-primary: #0E5960;
+  --blue-secondary: #3DA3A8;
+  --blue-accent: #17B7FF;
+  --blue-bg: #E0ECED;
+  --blue-text: #0A375B;
+
+  /* Green Theme */
+  --green-primary: #497a09;
+  --green-secondary: #A3AF31;
+  --green-accent: #B1CC11;
+  --green-bg: #E9F7D5;
+  --green-text: #415728;
+
+  /* Red Theme */
+  --red-primary: #891616;
+  --red-secondary: #A24035;
+  --red-accent: #E04C4C;
+  --red-bg: #F4EAEB;
+  --red-text: #57030A;
+
+  /* Greyscale Theme */
+  --grey-primary: #4A4A4A;
+  --grey-secondary: #777068;
+  --grey-accent: #BFBFBF;
+  --grey-bg: #F7F7F7;
+  --grey-text: #2D2D2D;
+
+  /* Earth Theme */
+  --earth-primary: #685933;
+  --earth-secondary: #BAA668;
+  --earth-accent: #C9B769;
+  --earth-bg: #E5DDBA;
+  --earth-text: #4F2F0F;
+}
+
+/* Theme Classes */
+.theme-blue {
+  --primary: var(--blue-primary);
+  --secondary: var(--blue-secondary);
+  --accent: var(--blue-accent);
+  --bg: var(--blue-bg);
+  --text: var(--blue-text);
+}
+
+.theme-green {
+  --primary: var(--green-primary);
+  --secondary: var(--green-secondary);
+  --accent: var(--green-accent);
+  --bg: var(--green-bg);
+  --text: var(--green-text);
+}
+
+.theme-red {
+  --primary: var(--red-primary);
+  --secondary: var(--red-secondary);
+  --accent: var(--red-accent);
+  --bg: var(--red-bg);
+  --text: var(--red-text);
+}
+
+.theme-greyscale {
+  --primary: var(--grey-primary);
+  --secondary: var(--grey-secondary);
+  --accent: var(--grey-accent);
+  --bg: var(--grey-bg);
+  --text: var(--grey-text);
+}
+
+.theme-earth {
+  --primary: var(--earth-primary);
+  --secondary: var(--earth-secondary);
+  --accent: var(--earth-accent);
+  --bg: var(--earth-bg);
+  --text: var(--earth-text);
+}
+
+/* Game Container */
+#game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: all 0.3s ease;
+}
+
+/* Header */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--primary);
+  color: white;
+  height: 60px;
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.score-container {
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+/* Game Screen */
+#game-screen {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#game-letters {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.letter {
+  position: absolute;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--secondary);
+  text-align: center;
+  width: 50px;
+  height: 50px;
+  line-height: 50px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid var(--secondary);
+  transition: transform 0.2s ease;
+}
+
+.letter.active {
+  color: white;
+  background-color: var(--accent);
+  transform: scale(1.1);
+}
+
+/* Start Screen */
+#start-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg);
+  padding: 2rem;
+  text-align: center;
+}
+
+#start-screen h1 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+#start-screen p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  max-width: 500px;
+}
+
+.settings {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.setting {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.setting label {
+  font-weight: 600;
+}
+
+.setting select {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 4px;
+  background-color: white;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.75rem 2rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--secondary);
+}
+
+/* Game Over Screen */
+#game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 2rem;
+}
+
+#game-over h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+#game-over p {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Footer */
+footer {
+  padding: 1rem;
+  text-align: center;
+  background-color: var(--primary);
+  color: white;
+  font-size: 0.9rem;
+  height: 40px;
+}
+
+/* Utilities */
+.hidden {
+  display: none;
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>>KEY< | Typing Practice Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container" class="theme-blue">
+        <header>
+            <div class="logo">&gt;KEY&lt;</div>
+            <div class="score-container">
+                Score: <span id="score">0</span>
+            </div>
+        </header>
+
+        <div id="game-screen">
+            <div id="game-letters"></div>
+            <div id="start-screen">
+                <h1>&gt;KEY&lt;</h1>
+                <p>Type the falling letters before they reach the bottom!</p>
+                <div class="settings">
+                    <div class="setting">
+                        <label for="difficulty">Difficulty:</label>
+                        <select id="difficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="setting">
+                        <label for="theme">Theme:</label>
+                        <select id="theme">
+                            <option value="blue">Blue</option>
+                            <option value="green">Green</option>
+                            <option value="red">Red</option>
+                            <option value="greyscale">Greyscale</option>
+                            <option value="earth">Earth</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="start-button">Start Game</button>
+            </div>
+            <div id="game-over" class="hidden">
+                <h2>Game Over</h2>
+                <p>Your score: <span id="final-score">0</span></p>
+                <button id="restart-button">Play Again</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>A minimalist typing practice game &middot; 2025</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
