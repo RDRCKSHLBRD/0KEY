@@ -1,5 +1,3 @@
-//app.js 
-
 document.addEventListener('DOMContentLoaded', () => {
   // Game elements
   const gameContainer = document.getElementById('game-container');
