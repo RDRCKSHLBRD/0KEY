@@ -1,0 +1,105 @@
+/* R3 Token Hygiene: Strict declarations */
+:root {
+    --c-bg-core: #E5E7EB;
+    --c-surface: #FFFFFF;
+    --c-ink-main: #111827;
+    --c-ink-muted: #6B7280;
+    --c-accent-blue: #2563EB;
+}
+
+/* R2 Layout: Zero rounded corners, rigid geometry */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    border-radius: 0 !important; 
+    font-family: monospace; 
+}
+
+body { 
+    background-color: var(--c-bg-core); 
+    color: var(--c-ink-main); 
+    height: 100vh; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+#rodux-app {
+    width: 800px;
+    height: 600px;
+    background: var(--c-surface);
+    border: 2px solid var(--c-ink-main);
+    display: flex; 
+    flex-direction: column; 
+    position: relative;
+}
+
+.hud { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 1rem; 
+    background: var(--c-ink-main); 
+    color: var(--c-surface); 
+    border-bottom: 4px solid var(--c-accent-blue); 
+}
+
+.metrics { display: flex; gap: 1.5rem; }
+.label { color: var(--c-ink-muted); margin-right: 0.5rem; }
+
+#viewport { 
+    flex: 1; 
+    position: relative; 
+    background: var(--c-surface); 
+    background-image: linear-gradient(var(--c-bg-core) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--c-bg-core) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.node {
+    position: absolute; 
+    width: 40px; 
+    height: 40px; 
+    background: var(--c-ink-main); 
+    color: var(--c-surface);
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-weight: 800; 
+    font-size: 1.2rem;
+    transform: translate(calc(var(--x, -100) * 1px), calc(var(--y, -100) * 1px));
+    opacity: var(--active, 0);
+}
+
+.node::after { content: var(--char, ""); }
+.node[data-status="hit"] { background: var(--c-accent-blue); }
+
+#overlay { 
+    position: absolute; 
+    inset: 0; 
+    background: rgba(255, 255, 255, 0.95); 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    display: none; 
+}
+
+#overlay.active { display: flex; }
+
+button { 
+    margin-top: 2rem; 
+    padding: 1rem 2rem; 
+    background: var(--c-ink-main); 
+    color: var(--c-surface); 
+    border: none; 
+    font-weight: 800; 
+    cursor: pointer; 
+    border-bottom: 4px solid var(--c-accent-blue); 
+}
+
+button:hover { 
+    background: var(--c-accent-blue); 
+    border-bottom-color: var(--c-ink-main); 
+}
