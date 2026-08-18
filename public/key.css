@@ -1,0 +1,219 @@
+/* ---------------------------------------------------------------------------
+   0KEY — STYLESHEET
+   path: public/key.css
+
+   One sheet for all three modules. Declares no colour and no dimension —
+   every --c-* and every geometry token arrives stamped from data/codex.json
+   by way of CSSVarSink. This file only says what goes where.
+
+   Module differences ride on [data-module], stamped on <html> at boot.
+   --------------------------------------------------------------------------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 0;
+    font-family: monospace;
+}
+
+body {
+    background-color: var(--c-bg-core);
+    color: var(--c-ink-main);
+    height: var(--app-h);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#rodux-app {
+    width: var(--shell-w);
+    height: var(--shell-h);
+    background: var(--c-surface);
+    border: var(--rule-thin) solid var(--c-ink-main);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+[data-module="dojo"] #rodux-app { border-color: var(--c-ink-muted); }
+
+/* --- HUD ----------------------------------------------------------------- */
+
+.hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--c-ink-main);
+    color: var(--c-surface);
+    border-bottom: var(--rule-thick) solid var(--c-accent-blue);
+}
+
+[data-module="dojo"] .hud {
+    background: var(--c-bg-core);
+    color: var(--c-ink-main);
+    border-bottom: var(--rule-thin) solid var(--c-ink-muted);
+}
+
+.brand { font-weight: 800; }
+.brand-svg { height: var(--brand-h); width: auto; }
+.metrics { display: flex; gap: 1.5rem; }
+.label { color: var(--c-ink-muted); margin-right: 0.5rem; }
+
+[data-module="dojo"] .metrics { font-weight: 800; }
+[data-module="dojo"] .label { font-size: 0.9rem; }
+
+.toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.label-text { font-weight: 800; font-size: 0.9rem; color: var(--c-ink-muted); }
+input:checked + .label-text { color: var(--c-accent-red); }
+
+/* Visibility is a stamped state, never a style write. */
+[data-visible="0"] { display: none; }
+[data-visible="1"] { display: inline; }
+
+#rep-label, #ui-reps { color: var(--c-accent-red); }
+
+/* --- VIEWPORT ------------------------------------------------------------ */
+
+#viewport { flex: 1; position: relative; background: var(--c-surface); }
+
+[data-module="arcade"] #viewport {
+    background-image: linear-gradient(var(--c-bg-core) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--c-bg-core) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+}
+
+[data-module="dojo"] #viewport {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    transition: background 0.1s;
+}
+
+[data-module="dojo"] #viewport.error-flash { background: var(--c-accent-red); }
+
+/* --- ARCADE NODES -------------------------------------------------------- */
+/* --x and --y arrive with units applied, so translate() needs no arithmetic. */
+
+.node {
+    position: absolute;
+    width: var(--node-size);
+    height: var(--node-size);
+    background: var(--c-ink-main);
+    color: var(--c-surface);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    transform: translate(var(--x, -100px), var(--y, -100px));
+    opacity: var(--active, 0);
+}
+
+.node::after { content: var(--char, ""); }
+.node[data-status="hit"] { background: var(--c-accent-blue); }
+
+/* --- DOJO KATA DISPLAY --------------------------------------------------- */
+
+#kata-display {
+    font-size: 2rem;
+    font-weight: 600;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+#text-typed { color: var(--c-accent-green); }
+#text-untyped { color: var(--c-ink-muted); }
+#text-cursor {
+    background: var(--c-ink-main);
+    color: var(--c-bg-core);
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink { 50% { opacity: 0; } }
+
+/* --- OVERLAY ------------------------------------------------------------- */
+
+#overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--c-scrim);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    display: none;
+}
+
+#overlay.active { display: flex; }
+
+/* --- BUTTONS ------------------------------------------------------------- */
+
+button {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    background: var(--c-ink-main);
+    color: var(--c-surface);
+    border: none;
+    font-weight: 800;
+    cursor: pointer;
+    border-bottom: var(--rule-thick) solid var(--c-accent-blue);
+}
+
+button:hover {
+    background: var(--c-accent-blue);
+    border-bottom-color: var(--c-ink-main);
+}
+
+[data-module="dojo"] button {
+    background: var(--c-surface);
+    color: var(--c-ink-main);
+    border: var(--rule-thin) solid var(--c-ink-muted);
+    transition: all 0.2s;
+}
+
+[data-module="dojo"] button:hover {
+    background: var(--c-ink-main);
+    color: var(--c-bg-core);
+}
+
+/* --- CONTROL ROOM -------------------------------------------------------- */
+
+#module-choice {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    height: 100%;
+}
+
+.choice-head { text-align: center; margin-bottom: 2rem; }
+
+.choice-head h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 0.5rem;
+}
+
+.choice-head p { color: var(--c-ink-muted); font-size: 0.9rem; }
+
+.choice-rack { display: flex; gap: 2rem; width: 100%; max-width: 600px; }
+
+.choice-card {
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    border: var(--rule-thin) solid var(--c-ink-main);
+    padding: 2rem;
+    background: var(--c-surface);
+    cursor: pointer;
+}
+
+.choice-card:hover { border-color: var(--c-accent-blue); }
+.choice-card h2 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 800; }
+.choice-card p { font-size: 0.85rem; color: var(--c-ink-muted); line-height: 1.4; }

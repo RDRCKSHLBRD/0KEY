@@ -1,0 +1,29 @@
+/* ---------------------------------------------------------------------------
+   0KEY — PALETTE
+   path: public/palette.css
+
+   Raw colour only. One name per value, one value per name — no aliases, no
+   redefinitions, no theme blocks. This is the only file in the project that
+   contains a hex literal.
+
+   Role tokens (--c-*) are NOT declared here. The sink stamps them from
+   data/codex.json, which maps each role to one of these palette entries.
+   --------------------------------------------------------------------------- */
+
+:root {
+    --p-ink-900: #111827;
+    --p-ink-800: #1F2937;
+    --p-ink-500: #6B7280;
+    --p-ink-400: #9CA3AF;
+    --p-ink-100: #E5E7EB;
+    --p-ink-050: #F3F4F6;
+    --p-white:   #FFFFFF;
+
+    --p-blue-600:  #2563EB;
+    --p-blue-500:  #3B82F6;
+    --p-red-500:   #EF4444;
+    --p-green-500: #10B981;
+
+    --p-scrim-light: rgba(255, 255, 255, 0.95);
+    --p-scrim-dark:  rgba(17, 24, 39, 0.95);
+}

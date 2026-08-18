@@ -1,0 +1,50 @@
+{
+  "_meta": {
+    "project": "0KEY",
+    "environment": "RODUX_ENV",
+    "schema": "KEY_LATTICE_V1",
+    "description": "Single source of truth for colour roles and geometry. CSS declares no role token and no dimension; the sink stamps both."
+  },
+
+  "geometry": {
+    "--shell-w": "900px",
+    "--shell-h": "600px",
+    "--rule-thin": "2px",
+    "--rule-thick": "4px",
+    "--brand-h": "24px"
+  },
+
+  "arcade": {
+    "--node-size": "40px",
+    "--grid-size": "40px"
+  },
+
+  "themes": {
+    "light": {
+      "--c-bg-core": "var(--p-ink-100)",
+      "--c-surface": "var(--p-white)",
+      "--c-ink-main": "var(--p-ink-900)",
+      "--c-ink-muted": "var(--p-ink-500)",
+      "--c-accent-blue": "var(--p-blue-600)",
+      "--c-accent-red": "var(--p-red-500)",
+      "--c-accent-green": "var(--p-green-500)",
+      "--c-scrim": "var(--p-scrim-light)"
+    },
+    "dark": {
+      "--c-bg-core": "var(--p-ink-900)",
+      "--c-surface": "var(--p-ink-800)",
+      "--c-ink-main": "var(--p-ink-050)",
+      "--c-ink-muted": "var(--p-ink-400)",
+      "--c-accent-blue": "var(--p-blue-500)",
+      "--c-accent-red": "var(--p-red-500)",
+      "--c-accent-green": "var(--p-green-500)",
+      "--c-scrim": "var(--p-scrim-dark)"
+    }
+  },
+
+  "modules": {
+    "index":  { "theme": "light" },
+    "arcade": { "theme": "light" },
+    "dojo":   { "theme": "dark" }
+  }
+}
