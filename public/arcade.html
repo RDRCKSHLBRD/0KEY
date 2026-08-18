@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>>KEY< | ARCADE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="rodux-app">
+        <header class="hud">
+            <div class="brand">&gt;KEY&lt; ARCADE</div>
+            <div class="metrics">
+                <span class="label">SCORE</span><span id="ui-score" class="value">000</span>
+                <span class="label">ERRORS</span><span id="ui-missed" class="value">00</span>
+            </div>
+        </header>
+        <main id="viewport">
+            <div class="node" data-index="0"></div><div class="node" data-index="1"></div>
+            <div class="node" data-index="2"></div><div class="node" data-index="3"></div>
+            <div class="node" data-index="4"></div><div class="node" data-index="5"></div>
+            <div class="node" data-index="6"></div><div class="node" data-index="7"></div>
+            <div class="node" data-index="8"></div><div class="node" data-index="9"></div>
+        </main>
+        <div id="overlay" class="active">
+            <h1 class="title">SYSTEM_READY</h1>
+            <button id="btn-init">INITIATE SEQUENCE</button>
+        </div>
+    </div>
+    <script type="module" src="sink/CSSVarSink.js"></script>
+</body>
+</html>

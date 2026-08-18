@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "type": "RODUX_KATA",
+    "module": "BASH_CORE",
+    "description": "Fundamental UNIX pipelines and system traversal."
+  },
+  "forms": [
+    "chmod +x setup.sh",
+    "tree -I node_modules",
+    "ls -la | grep '.json-r'",
+    "cat tools/smoke.mjs | less",
+    "rm -rf .bak/",
+    "find . -name '*.js' -type f",
+    "mkdir -p public/core public/sink",
+    "tar -czvf archive.tar.gz public/"
+  ]
+}

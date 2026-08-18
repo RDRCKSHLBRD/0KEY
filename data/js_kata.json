@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "type": "RODUX_KATA",
+    "module": "JS_RODUX_STACK",
+    "description": "Strict ES Module and CSS Variable Sink patterns."
+  },
+  "forms": [
+    "import { lattice } from './Lattice.js';",
+    "el.style.setProperty('--x', node.x);",
+    "lattice.dispatch('STATE_UPDATE', this.state);",
+    "document.addEventListener('DOMContentLoaded', () => {",
+    "const domNodes = document.querySelectorAll('.node');",
+    "requestAnimationFrame(loop);"
+  ]
+}

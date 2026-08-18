@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>>KEY< | DOJO</title>
+    <link rel="stylesheet" href="dojo.css">
+</head>
+<body>
+    <div id="rodux-app">
+        <header class="hud">
+            <img src="assets/PLATEN-RODUXICA-key.svg" class="brand-svg" alt="RODUXICA KEY" onerror="this.outerHTML='<div class=\'brand\'>&gt;KEY&lt; DOJO</div>'">
+            <div class="controls">
+                <label class="toggle">
+                    <input type="checkbox" id="mode-toggle" checked>
+                    <span class="label-text">SHAOLIN MODE</span>
+                </label>
+            </div>
+            <div class="metrics">
+                <span class="label">MISTAKES</span><span id="ui-mistakes" class="value">000</span>
+                <span class="label" id="rep-label" style="display:none; color: var(--c-accent-red);">REPS</span><span id="ui-reps" class="value" style="display:none; color: var(--c-accent-red);">0</span>
+            </div>
+        </header>
+
+        <main id="viewport">
+            <div id="kata-display">
+                <span id="text-typed"></span><span id="text-cursor"></span><span id="text-untyped"></span>
+            </div>
+        </main>
+        
+        <div id="overlay" class="active">
+            <h1 class="title">DOJO_READY</h1>
+            <button id="btn-init">LOAD UNIX BASH KATA</button>
+        </div>
+    </div>
+    <script type="module" src="sink/KataSink.js"></script>
+</body>
+</html>

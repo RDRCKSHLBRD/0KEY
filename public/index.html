@@ -3,30 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>>KEY< | RODUX</title>
+    <title>>KEY< | CONTROL_ROOM</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="rodux-app">
         <header class="hud">
-            <div class="brand">&gt;KEY&lt;</div>
+            <div class="brand">&gt;KEY&lt; SYSTEM_CONTROL</div>
             <div class="metrics">
-                <span class="label">SCORE</span><span id="ui-score" class="value">000</span>
-                <span class="label">ERRORS</span><span id="ui-missed" class="value">00</span>
+                <span class="label">NODE_STATUS</span><span class="value">ONLINE</span>
             </div>
         </header>
-        <main id="viewport">
-            <div class="node" data-index="0"></div><div class="node" data-index="1"></div>
-            <div class="node" data-index="2"></div><div class="node" data-index="3"></div>
-            <div class="node" data-index="4"></div><div class="node" data-index="5"></div>
-            <div class="node" data-index="6"></div><div class="node" data-index="7"></div>
-            <div class="node" data-index="8"></div><div class="node" data-index="9"></div>
+        
+        <main id="viewport" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2rem;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1 style="font-size: 3rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 0.5rem;">CHOOSE_MODULE_V1</h1>
+                <p style="color: var(--c-ink-muted); font-size: 0.9rem;">SELECT COMPUTATIONAL PIPELINE FOR COGNITIVE ENGAGEMENT</p>
+            </div>
+
+            <div style="display: flex; gap: 2rem; width: 100%; max-width: 600px;">
+                <a href="dojo.html" style="flex: 1; text-decoration: none; color: inherit; display: block;">
+                    <div style="border: 2px solid var(--c-ink-main); padding: 2rem; background: var(--c-surface); transition: all 0.2s; cursor: pointer; height: 100%;" onmouseover="this.style.borderColor='var(--c-accent-blue)'" onmouseout="this.style.borderColor='var(--c-ink-main)'">
+                        <h2 style="font-size: 1.5rem; margin-bottom: 1rem; font-weight: 800;">01_KATA_DOJO</h2>
+                        <p style="font-size: 0.85rem; color: var(--c-ink-muted); line-height: 1.4;">STRICT MUSCLE MEMORY TRAINING. SHAOLIN MODE ENFORCES ABSOLUTE PRECISION. RESETS PIPELINE ON ERROR.</p>
+                    </div>
+                </a>
+
+                <a href="arcade.html" style="flex: 1; text-decoration: none; color: inherit; display: block;">
+                    <div style="border: 2px solid var(--c-ink-main); padding: 2rem; background: var(--c-surface); transition: all 0.2s; cursor: pointer; height: 100%;" onmouseover="this.style.borderColor='var(--c-accent-blue)'" onmouseout="this.style.borderColor='var(--c-ink-main)'">
+                        <h2 style="font-size: 1.5rem; margin-bottom: 1rem; font-weight: 800;">02_ARCADE_MATRIX</h2>
+                        <p style="font-size: 0.85rem; color: var(--c-ink-muted); line-height: 1.4;">FALLING VARIABLE VECTOR TRAVERSAL. SPATIAL POSITIONING AND VELOCITY SCALE MANAGEMENT.</p>
+                    </div>
+                </a>
+            </div>
         </main>
-        <div id="overlay" class="active">
-            <h1 class="title">SYSTEM_READY</h1>
-            <button id="btn-init">INITIATE SEQUENCE</button>
-        </div>
     </div>
-    <script type="module" src="sink/CSSVarSink.js"></script>
 </body>
 </html>

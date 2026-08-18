@@ -1,0 +1,68 @@
+:root {
+    --c-bg-core: #111827;
+    --c-surface: #1F2937;
+    --c-ink-main: #F3F4F6;
+    --c-ink-muted: #9CA3AF;
+    --c-accent-blue: #3B82F6;
+    --c-accent-red: #EF4444;
+    --c-accent-green: #10B981;
+}
+
+* { 
+    margin: 0; padding: 0; box-sizing: border-box; 
+    border-radius: 0 !important; font-family: monospace; 
+}
+
+body { 
+    background-color: var(--c-bg-core); color: var(--c-ink-main); 
+    height: 100vh; overflow: hidden; display: flex; 
+    align-items: center; justify-content: center; 
+}
+
+#rodux-app {
+    width: 900px; height: 600px; background: var(--c-surface);
+    border: 2px solid var(--c-ink-muted); display: flex; 
+    flex-direction: column; position: relative;
+}
+
+.hud { 
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1rem; background: var(--c-bg-core); 
+    border-bottom: 2px solid var(--c-ink-muted); 
+}
+
+.brand-svg { height: 24px; width: auto; }
+.brand { font-weight: 800; }
+.metrics { display: flex; gap: 1.5rem; font-weight: 800; }
+.label { color: var(--c-ink-muted); margin-right: 0.5rem; font-size: 0.9rem;}
+
+.toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.label-text { font-weight: 800; font-size: 0.9rem; color: var(--c-ink-muted); }
+input:checked + .label-text { color: var(--c-accent-red); }
+
+#viewport { 
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    background: var(--c-surface); padding: 2rem; transition: background 0.1s;
+}
+
+#viewport.error-flash { background: var(--c-accent-red); }
+
+#kata-display { font-size: 2rem; font-weight: 600; white-space: pre-wrap; word-break: break-all; }
+#text-typed { color: var(--c-accent-green); }
+#text-cursor { background: var(--c-ink-main); color: var(--c-bg-core); animation: blink 1s step-end infinite; }
+#text-untyped { color: var(--c-ink-muted); }
+
+@keyframes blink { 50% { opacity: 0; } }
+
+#overlay { 
+    position: absolute; inset: 0; background: rgba(17, 24, 39, 0.95); 
+    display: flex; flex-direction: column; justify-content: center; align-items: center; 
+    display: none; 
+}
+#overlay.active { display: flex; }
+button { 
+    margin-top: 2rem; padding: 1rem 2rem; background: var(--c-surface); 
+    color: var(--c-ink-main); border: 2px solid var(--c-ink-muted); 
+    font-weight: 800; cursor: pointer; transition: all 0.2s;
+}
+button:hover { background: var(--c-ink-main); color: var(--c-bg-core); }
