@@ -98,7 +98,7 @@ input:checked + .label-text { color: var(--c-accent-red); }
 /* --- ARCADE NODES -------------------------------------------------------- */
 /* --x and --y arrive with units applied, so translate() needs no arithmetic. */
 
-.node {
+[data-module="arcade"] .node {
     position: absolute;
     width: var(--node-size);
     height: var(--node-size);
@@ -113,8 +113,8 @@ input:checked + .label-text { color: var(--c-accent-red); }
     opacity: var(--active, 0);
 }
 
-.node::after { content: var(--char, ""); }
-.node[data-status="hit"] { background: var(--c-accent-blue); }
+[data-module="arcade"] .node::after { content: var(--char, ""); }
+[data-module="arcade"] .node[data-status="hit"] { background: var(--c-accent-blue); }
 
 /* --- DOJO KATA DISPLAY --------------------------------------------------- */
 
@@ -133,7 +133,8 @@ input:checked + .label-text { color: var(--c-accent-red); }
     animation: blink 1s step-end infinite;
 }
 
-@keyframes blink { 50% { opacity: 0; } }
+/* The glyph must stay legible — blink the highlight, not the character. */
+@keyframes blink { 50% { background: transparent; color: var(--c-ink-main); } }
 
 /* --- OVERLAY ------------------------------------------------------------- */
 

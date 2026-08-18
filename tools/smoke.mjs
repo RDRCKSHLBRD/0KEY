@@ -1,504 +1,450 @@
 #!/usr/bin/env node
-// tools/smoke.mjs
-// TSATELIER — smoke tests. Run from repo root:
-//   node tools/smoke.mjs
+// ---------------------------------------------------------------------------
+// 0KEY — SMOKE TESTS
+// path: tools/smoke.mjs
 //
-// Covers the pure-compute layer only: ShellForest, WorldCoords,
-// PerspectiveEngine, and the data joins. No DOM, no browser. Anything that
-// needs a rendered page belongs in a different harness.
+// Covers the compute layer and — new in this pass — the codex contract:
+// palette, themes, geometry, and the pages that consume them. Every failure
+// mode this project actually hit is asserted here.
+// ---------------------------------------------------------------------------
 
-import { readFileSync } from 'node:fs';
-import { spawnSync } from 'node:child_process';
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const ROOT = join(__dirname, '..');
+const R = p => join(ROOT, p);
 
 const RED = '\x1b[31m', GRN = '\x1b[32m', DIM = '\x1b[2m', OFF = '\x1b[0m';
-let passed = 0, failed = 0, group = '';
+let passed = 0, failed = 0;
 
-const G = name => { group = name; console.log(`\n${DIM}${name}${OFF}`); };
-
+const G = name => console.log(`\n${DIM}${name}${OFF}`);
 function ok(desc, cond, detail = '') {
   if (cond) { passed++; console.log(`${GRN}  ok${OFF}  ${desc}`); }
   else { failed++; console.log(`${RED}FAIL${OFF}  ${desc}${detail ? '  — ' + detail : ''}`); }
 }
+const eq = (d, a, b) => ok(d, a === b, `got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
+const flush = ms => new Promise(r => setTimeout(r, ms));
 
-const eq = (desc, a, b) => ok(desc, a === b, `got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
-const near = (desc, a, b, tol = 1e-9) => ok(desc, Math.abs(a - b) <= tol, `got ${a}, want ~${b}`);
+const RUNTIME_TOKENS = new Set(['--app-w', '--app-h', '--x', '--y', '--active', '--char']);
 
-const codex    = JSON.parse(readFileSync('./data/codex.json', 'utf8'));
-const layout   = JSON.parse(readFileSync('./data/layout.json', 'utf8'));
-const manifest = JSON.parse(readFileSync('./data/manifest.json', 'utf8'));
+// ─── REPO STRUCTURE ─────────────────────────────────────────────────────────
 
-const ShellForest = await import('../public/core/ShellForest.js');
-const WorldCoords = await import('../public/core/WorldCoords.js');
-const Perspective = await import('../public/core/PerspectiveEngine.js');
-const SVGRenderer = await import('../public/core/SVGRenderer.js');
-
-WorldCoords.configureWorld(codex);
-Perspective.configureCamera(codex);
-
-// ─── PROFILE SELECTION ───────────────────────────────────────────────────────
-
-G('ShellForest.pickProfile — boundaries, not midpoints');
+G('repo structure');
 {
-  const p = (w, h) => ShellForest.pickProfile(codex, w, h);
-  eq('1600x720 -> wide',        p(1600, 720), 'wide');
-  eq('1599x720 -> desk',        p(1599, 720), 'desk');
-  eq('1024x720 -> desk',        p(1024, 720), 'desk');
-  eq('1024x719 -> squat',       p(1024, 719), 'squat');
-  eq('1023x719 -> tablet',      p(1023, 719), 'tablet');
-  eq('640x400  -> tablet',      p(640, 400),  'tablet');
-  eq('639x400  -> phone',       p(639, 400),  'phone');
-  eq('0x0      -> phone',       p(0, 0),      'phone');
+  for (const p of [
+    'server.js', 'package.json',
+    'data/codex.json', 'data/bash_kata.json', 'data/js_kata.json',
+    'public/index.html', 'public/dojo.html', 'public/arcade.html',
+    'public/palette.css', 'public/key.css', 'tools/browser/probe.js',
+    'public/core/Lattice.js', 'public/core/StateJS.js', 'public/core/KataEngine.js',
+    'public/sink/CSSVarSink.js', 'public/sink/IndexSink.js',
+    'public/sink/ArcadeSink.js', 'public/sink/KataSink.js',
+    'tools/gen-codex.mjs', 'tools/rodux-conform.mjs'
+  ]) ok(p, existsSync(R(p)));
+
+  ok('no legacy style.css', !existsSync(R('public/style.css')));
+  ok('no legacy dojo.css', !existsSync(R('public/dojo.css')));
 }
 
-// ─── SHELL GEOMETRY ──────────────────────────────────────────────────────────
+// ─── PALETTE ────────────────────────────────────────────────────────────────
 
-G('ShellForest.calculate — the shell tiles the viewport exactly');
+const paletteCss = readFileSync(R('public/palette.css'), 'utf8');
+const paletteDecls = [...paletteCss.matchAll(/(--p-[\w-]+)\s*:\s*([^;]+);/g)]
+  .map(m => ({ name: m[1], value: m[2].trim().toLowerCase() }));
+const paletteNames = new Set(paletteDecls.map(d => d.name));
+
+G('palette — one name per value, one value per name');
 {
-  const px = v => parseFloat(String(v));
-  const cases = [[1920, 1080], [1440, 900], [1280, 700], [900, 1200], [420, 860]];
+  ok('palette declares tokens', paletteDecls.length > 0);
 
-  for (const [w, h] of cases) {
-    const s = ShellForest.calculate(codex, w, h);
-    const v = s.vars;
-    const header = px(v['--z-header-h']), footer = px(v['--z-footer-h']), main = px(v['--z-main-h']);
+  const dupNames = paletteDecls.map(d => d.name)
+    .filter((n, i, a) => a.indexOf(n) !== i);
+  ok('no token declared twice', dupNames.length === 0, [...new Set(dupNames)].join(', '));
 
-    ok(`${w}x${h} (${s.profile}) header+main+footer === h`,
-       header + main + footer === h, `${header}+${main}+${footer} !== ${h}`);
+  const byValue = new Map();
+  for (const d of paletteDecls) {
+    if (!byValue.has(d.value)) byValue.set(d.value, []);
+    byValue.get(d.value).push(d.name);
+  }
+  const aliased = [...byValue.entries()].filter(([, n]) => n.length > 1);
+  ok('no two names share a value', aliased.length === 0,
+    aliased.map(([v, n]) => `${v}: ${n.join(' ')}`).join(' | '));
 
-    if (s.stack === 'row') {
-      ok(`${w}x${h} sidebar+gallery === w`,
-         px(v['--z-sidebar-w']) + px(v['--z-gallery-w']) === w);
-      ok(`${w}x${h} both columns full height`,
-         px(v['--z-sidebar-h']) === main && px(v['--z-gallery-h']) === main);
-    } else {
-      ok(`${w}x${h} sidebar+gallery === main (stacked)`,
-         px(v['--z-sidebar-h']) + px(v['--z-gallery-h']) === main);
-    }
+  ok('palette declares no role token', !/--c-[\w-]+\s*:/.test(paletteCss));
+}
 
-    ok(`${w}x${h} map fits its sidebar`, px(v['--z-map-size']) >= 120);
-    ok(`${w}x${h} no NaN / undefined in stamped vars`,
-       Object.entries(v).every(([, val]) =>
-         val !== undefined && val !== null && !String(val).includes('NaN')),
-       Object.entries(v).filter(([, x]) => String(x).includes('NaN')).map(([k]) => k).join(', '));
+// ─── CODEX CONTRACT ─────────────────────────────────────────────────────────
+
+const keyCodex = JSON.parse(readFileSync(R('data/codex.json'), 'utf8'));
+
+G('codex.json — schema and structure');
+{
+  eq('project', keyCodex._meta?.project, '0KEY');
+  eq('schema', keyCodex._meta?.schema, 'KEY_LATTICE_V1');
+  ok('declares geometry', typeof keyCodex.geometry === 'object');
+  ok('declares themes', typeof keyCodex.themes === 'object');
+  ok('declares modules', typeof keyCodex.modules === 'object');
+}
+
+const themeNames = Object.keys(keyCodex.themes);
+const roleKeys = new Set(Object.keys(keyCodex.themes[themeNames[0]]));
+
+G('codex.json — every theme carries the identical role set');
+{
+  for (const t of themeNames) {
+    const keys = Object.keys(keyCodex.themes[t]);
+    const missing = [...roleKeys].filter(k => !keys.includes(k));
+    const extra = keys.filter(k => !roleKeys.has(k));
+    ok(`theme "${t}" has no missing role`, missing.length === 0, missing.join(', '));
+    ok(`theme "${t}" has no stray role`, extra.length === 0, extra.join(', '));
   }
 }
 
-G('ShellForest — the footer drawer opens without breaking the shell');
+G('codex.json — every role resolves to a declared palette token');
 {
-  const px = v => parseFloat(String(v));
-  const cases = [[1920, 1080], [1440, 900], [1280, 700], [900, 1200], [420, 860]];
-
-  for (const [w, h] of cases) {
-    const shut = ShellForest.calculate(codex, w, h, false);
-    const open = ShellForest.calculate(codex, w, h, true);
-    const a = shut.vars, b = open.vars;
-
-    ok(`${w}x${h} (${shut.profile}) open shell still tiles the viewport`,
-       px(b['--z-header-h']) + px(b['--z-main-h']) + px(b['--z-footer-h']) === h,
-       `${b['--z-header-h']}+${b['--z-main-h']}+${b['--z-footer-h']} !== ${h}`);
-
-    ok(`${w}x${h} the drawer is taller than the bar`,
-       px(b['--z-footer-h']) > px(a['--z-footer-h']),
-       `${b['--z-footer-h']} vs ${a['--z-footer-h']}`);
-
-    ok(`${w}x${h} the drawer leaves the gallery a surface`,
-       px(b['--z-gallery-w']) > 0 && px(b['--z-gallery-h']) > 0);
-
-    // Fader geometry must NOT move when the drawer opens. Sized off the live
-    // footer height, the controls would resize as the drawer slid — which
-    // reads as the mixer squirming rather than the drawer opening.
-    ok(`${w}x${h} mixer geometry is unchanged by the drawer`,
-       b['--z-fader-w'] === a['--z-fader-w'] && b['--z-mute-size'] === a['--z-mute-size'],
-       `${b['--z-fader-w']} vs ${a['--z-fader-w']}`);
-  }
-}
-
-G('ShellForest — palette reaches CSS');
-{
-  const v = ShellForest.calculate(codex, 1440, 900).vars;
-  const keys = Object.keys(codex.palette);
-  const missing = keys.filter(k =>
-    v['--c-' + k.replace(/[A-Z]/g, c => '-' + c.toLowerCase())] === undefined);
-  ok(`all ${keys.length} palette keys emitted as --c-*`, missing.length === 0, missing.join(', '));
-  ok('no --qt-* aliases remain', !Object.keys(v).some(k => k.startsWith('--qt-')));
-}
-
-// ─── WORLD ───────────────────────────────────────────────────────────────────
-
-G('WorldCoords — configured from codex, no local constants');
-{
-  eq('gridSize from codex',  WorldCoords.GRID_SIZE,   codex.world.gridSize);
-  eq('cellSize from codex',  WorldCoords.CELL_SIZE,   codex.world.cellSize);
-  eq('eyeHeight from codex', WorldCoords.EYE_HEIGHT,  codex.camera.eyeHeight);
-  eq('nearPlane from codex', WorldCoords.NEAR_PLANE,  codex.camera.nearPlane);
-}
-
-G('WorldCoords — camera basis is orthonormal in every orientation');
-{
-  for (const o of ['up', 'down', 'left', 'right']) {
-    const c = WorldCoords.cameraAtCell(6, 6, o);
-    near(`${o}: |forward| === 1`, Math.hypot(c.f.x, c.f.z), 1);
-    near(`${o}: |right| === 1`,   Math.hypot(c.r.x, c.r.z), 1);
-    near(`${o}: forward ⟂ right`, c.f.x * c.r.x + c.f.z * c.r.z, 0);
-    eq(`${o}: eye at codex height`, c.y, codex.camera.eyeHeight);
-  }
-}
-
-G('WorldCoords — a point ahead of the camera projects forward');
-{
-  const cam = WorldCoords.cameraAtCell(6, 6, 'up');
-  const ahead = WorldCoords.gridToWorld(6, 3);           // further "up" the grid
-  const v = WorldCoords.worldToView(ahead.x, 0, ahead.z, cam);
-  ok('forward point has positive view z', v.z > 0, `z = ${v.z}`);
-  near('forward point is centred', v.x, 0, 1e-9);
-}
-
-G('WorldCoords — walls dedupe, artwork renders at catalogued size');
-{
-  const walls = WorldCoords.extractWalls(layout);
-  ok('walls extracted', walls.length > 0, `${walls.length}`);
-  eq('no duplicate wall ids', new Set(walls.map(w => w.id)).size, walls.length);
-  ok('every wall at codex height',
-     walls.every(w => w.height === codex.world.wallHeight));
-
-  const places = WorldCoords.buildArtworkPlacements(layout, manifest.curationMap);
-  eq('14 placements', new Set(places.map(p => p.id)).size, 14);
-
-  const width  = r => Math.abs(r.corners[1].x - r.corners[0].x);
-  const height = r => Math.abs(r.corners[0].y - r.corners[3].y);
-  const rectAt = (span, meta) =>
-    WorldCoords.getArtworkWorldRect({ x: 6, y: 6, wallFace: 'top', span }, meta);
-
-  // Real catalogue entry, real millimetres. The previous fixture here was
-  // { actualWidth: 24, actualHeight: 18 } — inch-magnitude in millimetre-named
-  // fields, harmless while only the ratio was read and silently 25.4x wrong the
-  // moment absolute size was.
-  const ix = manifest.artworkDetails.MERIDIANS_IX;
-  const real = rectAt(1, ix);
-  near('a work renders at its catalogued width',  width(real),  ix.actualWidth / 1000, 1e-9);
-  near('a work renders at its catalogued height', height(real), ix.actualHeight / 1000, 1e-9);
-
-  // The caps are a guard. Nothing in the catalogue reaches either, so state that
-  // as an assertion rather than leaving it as an assumption — if a future work
-  // does need clamping, this is where it announces itself.
-  const capH  = codex.world.artwork.maxHeight;
-  const capW1 = codex.world.cellSize * codex.world.artwork.maxWidthRatio;
-  ok('no catalogued work needs clamping at span 1',
-     Object.values(manifest.artworkDetails).every(d =>
-       d.actualWidth / 1000 <= capW1 + 1e-9 && d.actualHeight / 1000 <= capH + 1e-9));
-
-  // span multiplies the CAP, not the work. Needs a synthetic fixture because no
-  // real work is wide enough to reach it: 3000 x 1000 mm, aspect exactly 3.
-  const wide = { actualWidth: 3000, actualHeight: 1000 };
-  const s1 = rectAt(1, wide), s2 = rectAt(2, wide);
-  near('at span 1 an oversized work is clamped to the cap', width(s1), capW1, 1e-9);
-  ok('span 2 admits a wider work than span 1', width(s2) > width(s1),
-     `${width(s2)} vs ${width(s1)}`);
-  near('clamping preserves the catalogued aspect', width(s1) / height(s1), 3, 1e-9);
-
-  // A placement with no catalogue entry still has to produce a drawable rect.
-  ok('a work with no metadata still gets a rect', rectAt(1, null) !== null);
-}
-
-// ─── OPENINGS // ─── MANIFEST ────────────────────────────────────────────────────────────────
-
-G('manifest — catalogued inches and stored millimetres are one measurement');
-{
-  // dimensionsOriginal is HEIGHT x WIDTH in inches, exactly as the artist
-  // catalogues it. actualWidth/actualHeight are millimetres derived from it.
-  // Two representations, no comparison between them until now.
-  const MM_PER_INCH = 25.4;
-  const drift = [];
-
-  for (const d of Object.values(manifest.artworkDetails)) {
-    const [hIn, wIn] = String(d.dimensionsOriginal).split('x').map(Number);
-    const dw = Math.abs(wIn * MM_PER_INCH - d.actualWidth);
-    const dh = Math.abs(hIn * MM_PER_INCH - d.actualHeight);
-    if (!(dw <= 0.5 && dh <= 0.5)) {
-      drift.push(`${d.name}: ${d.dimensionsOriginal}in wants ` +
-                 `${Math.round(wIn * MM_PER_INCH)}x${Math.round(hIn * MM_PER_INCH)}mm, ` +
-                 `stored ${d.actualWidth}x${d.actualHeight}`);
+  const broken = [];
+  const referenced = new Set();
+  for (const t of themeNames) {
+    for (const [role, val] of Object.entries(keyCodex.themes[t])) {
+      const m = /^var\(\s*(--p-[\w-]+)\s*\)$/.exec(val.trim());
+      if (!m) { broken.push(`${t}.${role} = ${val}`); continue; }
+      referenced.add(m[1]);
+      if (!paletteNames.has(m[1])) broken.push(`${t}.${role} -> ${m[1]} undeclared`);
     }
   }
+  ok('every role maps to an existing palette token', broken.length === 0, broken.join(' | '));
 
-  ok(`all ${Object.keys(manifest.artworkDetails).length} works agree within 0.5 mm`,
-     drift.length === 0, drift.join(' | '));
+  const orphans = [...paletteNames].filter(n => !referenced.has(n));
+  ok('no palette token is unused', orphans.length === 0, orphans.join(', '));
 }
 
-// ─── OPENINGS ────────────────────────────────────────────────────────────────
-
-G('layout — the room has exactly one opening, and it is the door');
+G('codex.json — every module names a theme that exists');
 {
-  const perim = layout.filter(c => c.x === 1 || c.x === 11 || c.y === 1 || c.y === 11);
-  eq('40 perimeter cells', perim.length, 40);
-  eq('39 wall cells', layout.filter(c => c.isWall).length, 39);
-
-  // A DOOR IS A CELL AND AN EDGE, AND THEY ARE NOT THE SAME OBJECT.
-  //
-  //   the THRESHOLD  cell (10,11) — a gap in the wall ring, isWall false
-  //   the OPENING    edge (10,10).bottom — the interior's south face, which
-  //                  is what extractWalls turns into a segment of kind
-  //                  'opening' and what the renderer fills
-  //
-  // This block used to look for openings.bottom on the THRESHOLD, where there
-  // is nothing to declare: the threshold is not a wall, so it has no faces.
-  // The room is inset one cell inside the grid — cells 1 and 11 ARE the wall
-  // ring — so every room edge lives on grid lines 1..10, never 0 or 11.
-  const open = perim.filter(c => !c.isWall);
-  eq('exactly one non-wall perimeter cell', open.length, 1);
-  eq('the threshold is at (10,11)', `${open[0].x},${open[0].y}`, '10,11');
-
-  const jamb = layout.find(c => c.x === 10 && c.y === 10);
-  ok('the door is declared, not implied', jamb?.openings?.bottom === true);
-
-  const walls = WorldCoords.extractWalls(layout);
-  // The door sits at the south-east corner of the interior, so it has a west
-  // jamb and no east one — the east end of its edge IS the corner.
-  eq('the door edge is an opening', walls.find(w => w.id === 'w_9_10_10_10')?.kind, 'opening');
-  eq('west jamb is wall', walls.find(w => w.id === 'w_8_10_9_10')?.kind, 'wall');
-  eq('44 segments: 43 wall + 1 opening', walls.length, 44);
-  eq('one opening in the whole room', walls.filter(w => w.kind === 'opening').length, 1);
-  eq('43 walls', walls.filter(w => w.kind === 'wall').length, 43);
-}
-
-G('WorldCoords — every segment knows which axis it faces');
-{
-  const walls = WorldCoords.extractWalls(layout);
-  ok('every segment carries an axis', walls.every(w => w.axis === 'x' || w.axis === 'z'));
-  eq('P9 bar faces z', walls.find(w => w.id === 'w_4_6_5_6')?.axis, 'z');
-  eq('corridor partition faces x', walls.find(w => w.id === 'w_7_8_7_9')?.axis, 'x');
-}
-
-G('codex — perpendicular walls get a readable value step');
-{
-  for (const mode of ['gallery', 'debug']) {
-    const w = codex.scene.modes[mode].wall;
-    const o = codex.scene.modes[mode].opening;
-    ok(`${mode}: wall declares shadeX and shadeZ`,
-       typeof w.shadeX === 'number' && typeof w.shadeZ === 'number');
-    const ch = parseInt(w.fillNear.slice(1, 3), 16);
-    const gap = Math.abs(ch * w.shadeX - ch * w.shadeZ);
-    ok(`${mode}: corner step is visible`, gap >= 8, `${gap.toFixed(1)}/255`);
-    ok(`${mode}: opening declares fill and stroke`,
-       typeof o?.fill === 'string' && typeof o?.stroke === 'string');
+  for (const [name, entry] of Object.entries(keyCodex.modules)) {
+    ok(`module "${name}" -> theme "${entry.theme}"`, themeNames.includes(entry.theme));
   }
 }
 
-// ─── ROOM INTEGRITY ──────────────────────────────────────────────────────────
+// ─── STYLESHEET ─────────────────────────────────────────────────────────────
 
-G('layout — every interior wall is a two-faced partition');
+const keyCss = readFileSync(R('public/key.css'), 'utf8');
+
+G('key.css — declares nothing, references only what is stamped');
 {
-  const N = codex.world.gridSize;
-  const faces = { top:    c => [c.x - 1, c.y - 1, c.x,     c.y - 1],
-                  bottom: c => [c.x - 1, c.y,     c.x,     c.y],
-                  left:   c => [c.x - 1, c.y - 1, c.x - 1, c.y],
-                  right:  c => [c.x,     c.y - 1, c.x,     c.y] };
-  const key = (a, b, c, d) =>
-    `${Math.min(a, c)},${Math.min(b, d)},${Math.max(a, c)},${Math.max(b, d)}`;
+  const hex = keyCss.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
+  ok('zero hex literals', hex.length === 0, hex.join(', '));
 
-  const edges = new Map();
-  for (const cell of layout) {
-    for (const side of Object.keys(faces)) {
-      if (!cell.wallBorders?.[side]) continue;
-      const k = key(...faces[side](cell));
-      if (!edges.has(k)) edges.set(k, []);
-      edges.get(k).push(`(${cell.x},${cell.y}).${side}`);
-    }
-  }
-  // THE ROOM IS NOT THE GRID.
-  //
-  // This predicate used to test grid lines 0 and N, i.e. the outer boundary of
-  // the 11x11 grid, and expected 43 perimeter edges — which is exactly
-  // 4 x 11 - 1, the perimeter of a room that FILLS the grid, less the door.
-  // The room is inset: cells 1 and 11 are the wall ring, so the enclosed
-  // interior is 9x9 and its boundary runs along lines 1 and 10.
-  //
-  // Under the old predicate every one of the 43 declared edges classified as
-  // 'interior', so 35 perimeter edges were then checked for two-faced pairing
-  // and correctly reported as single-faced. The layout was never wrong. The
-  // arithmetic closes on the corrected predicate: 4 x 9 - 1 = 35.
-  const INNER_LO = 1, INNER_HI = N - 1;
-  const isPerimeter = k => {
-    const [x1, y1, x2, y2] = k.split(',').map(Number);
-    return (x1 === INNER_LO && x2 === INNER_LO) || (x1 === INNER_HI && x2 === INNER_HI)
-        || (y1 === INNER_LO && y2 === INNER_LO) || (y1 === INNER_HI && y2 === INNER_HI);
-  };
+  const declared = keyCss.match(/^\s*--[\w-]+\s*:/gm) || [];
+  ok('declares no custom property', declared.length === 0, declared.join(', '));
 
-  const interior = [...edges].filter(([k]) => !isPerimeter(k));
-  const perimeter = [...edges].filter(([k]) => isPerimeter(k));
-  eq('35 perimeter edges (4 x 9 interior, less the door)', perimeter.length, 35);
-  eq('8 interior edges (the L partition)', interior.length, 8);
+  const known = new Set([
+    ...roleKeys,
+    ...Object.keys(keyCodex.geometry),
+    ...Object.keys(keyCodex.arcade ?? {}),
+    ...RUNTIME_TOKENS
+  ]);
+  const used = [...new Set([...keyCss.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]))];
+  const unknown = used.filter(n => !known.has(n));
+  ok(`all ${used.length} referenced tokens are stamped somewhere`,
+    unknown.length === 0, unknown.join(', '));
 
-  const unpaired = interior.filter(([, v]) => v.length !== 2);
-  ok('every interior edge is declared from both faces', unpaired.length === 0,
-     unpaired.map(([k, v]) => `${k} by ${v.join('+')}`).join('; '));
-
-  const doubled = perimeter.filter(([, v]) => v.length !== 1);
-  ok('no perimeter edge is declared twice', doubled.length === 0,
-     doubled.map(([k]) => k).join('; '));
+  const unused = [...roleKeys].filter(r => !used.includes(r));
+  ok('no role token is unused', unused.length === 0, unused.join(', '));
 }
 
-G('map — the sidebar plan is derived from layout, not drawn beside it');
+// ─── PAGES ──────────────────────────────────────────────────────────────────
+// This group is the one that would have caught a foreign index.html.
+
+G('pages — identity, stylesheets, and sink wiring');
 {
-  const r = spawnSync(process.execPath, ['tools/gen-map.mjs', '--check'], { encoding: 'utf8' });
-  ok('committed map matches layout.json', r.status === 0,
-     (r.stderr || r.stdout || '').trim());
-}
+  const pages = [
+    { file: 'public/index.html',  sink: 'IndexSink.js' },
+    { file: 'public/arcade.html', sink: 'ArcadeSink.js' },
+    { file: 'public/dojo.html',   sink: 'KataSink.js' }
+  ];
 
-// ─── PROJECTION ──────────────────────────────────────────────────────────────
+  for (const { file, sink } of pages) {
+    const html = readFileSync(R(file), 'utf8');
+    const tag = file.split('/').pop();
 
-G('PerspectiveEngine — near plane is the codex value, once');
-{
-  const cam = WorldCoords.cameraAtCell(6, 6, 'up');
-  const vp = Perspective.makeViewport(1200, 800);
-  const np = codex.camera.nearPlane;
+    const title = /<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? '';
+    ok(`${tag} title carries >KEY<`, title.includes('>KEY<'), title);
 
-  // A point just inside the near plane projects; just outside does not.
-  const inside  = { x: cam.x, y: 1.6, z: cam.z - (np + 0.05) };
-  const outside = { x: cam.x, y: 1.6, z: cam.z - (np - 0.05) };
+    const links = [...html.matchAll(/<link[^>]+href="([^"]+)"/g)].map(m => m[1]);
+    ok(`${tag} links palette.css`, links.includes('palette.css'), links.join(', '));
+    ok(`${tag} links key.css`, links.includes('key.css'), links.join(', '));
+    eq(`${tag} links exactly two sheets`, links.length, 2);
 
-  ok('point beyond near plane is visible',
-     Perspective.projectPoint(inside.x, inside.y, inside.z, cam, vp).visible);
-  ok('point inside near plane is clipped',
-     !Perspective.projectPoint(outside.x, outside.y, outside.z, cam, vp).visible);
-}
+    const scripts = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m => m[1]);
+    eq(`${tag} loads exactly one module`, scripts.length, 1);
+    ok(`${tag} loads sink/${sink}`, scripts[0] === `sink/${sink}`, scripts.join(', '));
+    ok(`${tag} sink exists on disk`, existsSync(R(`public/${scripts[0]}`)));
 
-G('PerspectiveEngine — projection is centred and monotone in depth');
-{
-  const cam = WorldCoords.cameraAtCell(6, 6, 'up');
-  const vp = Perspective.makeViewport(1200, 800);
+    const inline = html.match(/\sstyle="[^"]*"/g) || [];
+    ok(`${tag} has no inline style attribute`, inline.length === 0, inline.slice(0, 3).join(' '));
 
-  const p = WorldCoords.gridToWorld(6, 3);
-  const eye = codex.camera.eyeHeight;
-  const at = Perspective.projectPoint(p.x, eye, p.z, cam, vp);
-  near('a point at eye height on the axis lands at viewport centre', at.y, vp.height / 2, 1e-6);
-  near('… and horizontally centred', at.x, vp.width / 2, 1e-6);
+    const handlers = html.match(/\son(click|mouseover|mouseout|error|load)="/g) || [];
+    ok(`${tag} has no inline event handler`, handlers.length === 0, handlers.join(' '));
 
-  const nearW = Perspective.projectPoint(p.x + 1, eye, cam.z - 2, cam, vp);
-  const farW  = Perspective.projectPoint(p.x + 1, eye, cam.z - 8, cam, vp);
-  ok('the same offset subtends less screen space when further away',
-     Math.abs(nearW.x - vp.width / 2) > Math.abs(farW.x - vp.width / 2));
-}
-
-// ─── CAMERA ──────────────────────────────────────────────────────────────────
-
-G('PerspectiveEngine — focal length derives from the pane, and the suite can see it');
-{
-  const r = codex.camera.focalLengthRatio;
-
-  near('landscape pane: the long edge is the width',
-       Perspective.makeViewport(1440, 840).focalLength, 1440 * r, 1e-9);
-  near('portrait pane: the long edge is the height',
-       Perspective.makeViewport(840, 1440).focalLength, 1440 * r, 1e-9);
-
-  // Every other assertion in this file is invariant under focal length — the
-  // on-axis ones cancel it, the comparative ones scale both sides by it. This
-  // is the first one whose value moves when the camera moves, which is what
-  // makes the single-owner rule mechanically enforced rather than merely tidy.
-  //
-  // A pinhole camera projects a lateral offset d at depth z to (d / z) * fl
-  // pixels off centre. 1 m at 3 m is fl / 3, exactly.
-  const vp  = Perspective.makeViewport(1440, 840);
-  const cam = WorldCoords.cameraAtCell(6, 6, 'up');
-  const off = Perspective.projectPoint(cam.x + 1, codex.camera.eyeHeight, cam.z - 3, cam, vp);
-
-  near('1 m of lateral offset at 3 m depth projects fl/3 px off centre',
-       Math.abs(off.x - vp.width / 2), vp.focalLength / 3, 1e-6);
-}
-
-// ─── OCCLUSION DEPTH ─────────────────────────────────────────────────────────
-
-G('SVGRenderer — coplanar promotion stays local to the wall it promotes past');
-{
-  const walls  = WorldCoords.extractWalls(layout);
-  const places = WorldCoords.buildArtworkPlacements(layout, manifest.curationMap);
-  const vp = Perspective.makeViewport(1200, 800);
-
-  // Duplicated from SVGRenderer deliberately. If the renderer's table changes,
-  // this one should have to be reconsidered rather than silently agree.
-  const NORMAL = {
-    top:  { x: 0, z:  1 }, bottom: { x:  0, z: -1 },
-    left: { x: 1, z:  0 }, right:  { x: -1, z:  0 }
-  };
-
-  const collect = (gx, gy, orientation) => {
-    const camera = WorldCoords.cameraAtCell(gx, gy, orientation);
-    const visible = walls.filter(w =>
-      Perspective.isWallPotentiallyVisible(w, camera) &&
-      Perspective.projectWall(w, camera, vp).visible);
-
-    const out = [];
-    for (const p of places) {
-      const rect = WorldCoords.getArtworkWorldRect(p, null);
-      if (!rect) continue;
-
-      const n = NORMAL[rect.wallFace];
-      let ax = 0, az = 0;
-      for (const c of rect.corners) { ax += c.x; az += c.z; }
-      ax /= rect.corners.length; az /= rect.corners.length;
-      if (n.x * (camera.x - ax) + n.z * (camera.z - az) <= 0) continue;
-      if (!Perspective.projectQuad(rect.corners, camera, vp).visible) continue;
-
-      const own = SVGRenderer.farthestZ(rect.corners, camera);
-      out.push({
-        id: p.id,
-        key: SVGRenderer.planeKeyOfArtwork(rect),
-        own,
-        sort: SVGRenderer.promotedZ(visible, rect, camera) ?? own
-      });
-    }
-    return out;
-  };
-
-  const cases = [[10, 11, 'up'], [10, 6, 'left'], [3, 8, 'right'], [6, 3, 'down']];
-
-  for (const [gx, gy, o] of cases) {
-    const items = collect(gx, gy, o);
-    ok(`(${gx},${gy}) ${o}: sees artwork`, items.length > 0, `${items.length}`);
-
-    const worst = items
-      .map(i => ({ ...i, d: Math.abs(i.sort - i.own) }))
-      .sort((a, b) => b.d - a.d)[0];
-    ok(`(${gx},${gy}) ${o}: sort key stays within one cell of true depth`,
-       !worst || worst.d <= codex.world.cellSize + 1e-9,
-       worst && `${worst.id} sorts at ${worst.sort} but sits at ${worst.own.toFixed(1)}`);
-
-    const bad = [];
-    for (let a = 0; a < items.length; a++)
-      for (let b = a + 1; b < items.length; b++) {
-        if (items[a].key !== items[b].key) continue;
-        if (Math.sign(items[a].sort - items[b].sort) !==
-            Math.sign(items[a].own  - items[b].own)) bad.push(`${items[a].id}/${items[b].id}`);
-      }
-    ok(`(${gx},${gy}) ${o}: coplanar works keep their depth order`,
-       bad.length === 0, bad.join(', '));
+    ok(`${tag} is 0KEY, not another project`,
+      !/Interstellar|TSATELIER|landing\.css/.test(html));
   }
 }
-// ─── DATA JOINS ──────────────────────────────────────────────────────────────
 
-G('Data joins — nothing hung without metadata, nothing curated unhung');
+// ─── KATA DATA ──────────────────────────────────────────────────────────────
+
+G('kata data — shape and typing traps');
 {
-  const hung = new Set(layout.map(c => c.artworkId).filter(Boolean));
-  const curated = Object.keys(manifest.curationMap || {});
-  const detailed = Object.keys(manifest.artworkDetails || {});
-
-  eq('layout cells', layout.length, codex.world.gridSize ** 2);
-  eq('distinct hung works', hung.size, 14);
-  eq('curationMap entries', curated.length, 14);
-  eq('artworkDetails entries', detailed.length, 14);
-
-  const unhung = curated.filter(k => !hung.has(k));
-  const orphan = [...hung].filter(k => !curated.includes(k));
-  const nometa = curated.filter(k => !detailed.includes(manifest.curationMap[k]));
-
-  ok('every curated work is hung', unhung.length === 0, unhung.join(', '));
-  ok('every hung work is curated', orphan.length === 0, orphan.join(', '));
-  ok('every curated work has details', nometa.length === 0, nometa.join(', '));
+  for (const f of ['data/bash_kata.json', 'data/js_kata.json']) {
+    const d = JSON.parse(readFileSync(R(f), 'utf8'));
+    const tag = f.split('/').pop();
+    eq(`${tag} declares RODUX_KATA`, d._meta?.type, 'RODUX_KATA');
+    ok(`${tag} names a module`, typeof d._meta?.module === 'string' && d._meta.module.length > 0);
+    ok(`${tag} forms is a non-empty array`, Array.isArray(d.forms) && d.forms.length > 0);
+    ok(`${tag} every form is a non-empty string`,
+      d.forms.every(s => typeof s === 'string' && s.length > 0));
+    const trailing = d.forms.filter(s => s !== s.trimEnd());
+    ok(`${tag} no form has trailing whitespace`, trailing.length === 0, trailing.join(' | '));
+    ok(`${tag} no form contains a tab`, d.forms.every(s => !s.includes('\t')));
+    ok(`${tag} forms are unique`, new Set(d.forms).size === d.forms.length);
+  }
 }
 
-// ─── VERDICT ─────────────────────────────────────────────────────────────────
+// ─── GENERATED CODEX ────────────────────────────────────────────────────────
 
-console.log();
-if (failed) { console.log(`${RED}${failed} failed, ${passed} passed.${OFF}\n`); process.exit(1); }
-console.log(`${GRN}${passed}/${passed} passed.${OFF}\n`);
+G('0key_codex.json-r — current with disk');
+{
+  const p = R('0key_codex.json-r');
+  ok('generated codex exists  (npm run codex)', existsSync(p));
+  if (existsSync(p)) {
+    const c = JSON.parse(readFileSync(p, 'utf8'));
+    eq('schema', c._meta?.schema, 'CODEX_SCHEMA_V1');
+
+    const mPaths = c._meta.manifest.map(m => m.path).sort();
+    const pPaths = Object.keys(c.payload).sort();
+    ok('manifest and payload agree', mPaths.join('|') === pPaths.join('|'));
+
+    const drift = c._meta.manifest.filter(m => {
+      if (!existsSync(R(m.path))) return true;
+      const sha = createHash('sha256').update(readFileSync(R(m.path), 'utf8')).digest('hex').slice(0, 16);
+      return sha !== m.sha256;
+    }).map(m => m.path);
+    ok('codex matches disk  (if this fails: npm run codex)', drift.length === 0, drift.join(', '));
+  }
+}
+
+// ─── LATTICE ────────────────────────────────────────────────────────────────
+
+const { Lattice, lattice } = await import('../public/core/Lattice.js');
+
+G('Lattice — the bus');
+{
+  const bus = new Lattice();
+  let seen; bus.on('X', p => { seen = p; }); bus.dispatch('X', 42);
+  eq('payload is delivered', seen, 42);
+
+  let n = 0; bus.on('Y', () => n++); bus.on('Y', () => n++); bus.dispatch('Y');
+  eq('every listener on a channel fires', n, 2);
+
+  let leaked = false; bus.on('A', () => { leaked = true; }); bus.dispatch('B');
+  eq('channels are isolated', leaked, false);
+
+  let threw = false;
+  try { bus.dispatch('NOBODY_LISTENING', 1); } catch { threw = true; }
+  eq('dispatch to an empty channel is a no-op', threw, false);
+
+  const fresh = new Lattice();
+  let cross = false; fresh.on('X', () => { cross = true; }); bus.dispatch('X', 1);
+  eq('instances do not share listeners', cross, false);
+}
+
+// ─── STATEJS ────────────────────────────────────────────────────────────────
+
+const { stateJS } = await import('../public/core/StateJS.js');
+const { kataEngine } = await import('../public/core/KataEngine.js');
+
+G('StateJS — boot shape');
+{
+  eq('ten nodes in the pool', stateJS.state.nodes.length, 10);
+  eq('not playing at boot', stateJS.state.isPlaying, false);
+  eq('ten misses allowed', stateJS.state.maxMisses, 10);
+  ok('every node starts inactive', stateJS.state.nodes.every(n => n.active === 0));
+}
+
+G('StateJS — VIEWPORT_SYNC is the only dimension source');
+{
+  lattice.dispatch('VIEWPORT_SYNC', { w: 640, h: 480 });
+  eq('width syncs', stateJS.state.viewportWidth, 640);
+  eq('height syncs', stateJS.state.viewportHeight, 480);
+}
+
+G('StateJS — spawn');
+{
+  lattice.dispatch('INIT_GAME');
+  eq('run is live', stateJS.state.isPlaying, true);
+  eq('score resets', stateJS.state.score, 0);
+  eq('misses reset', stateJS.state.missed, 0);
+  eq('pool cleared', stateJS.state.nodes.filter(n => n.active === 1).length, 0);
+
+  lattice.dispatch('SPAWN');
+  const live = stateJS.state.nodes.filter(n => n.active === 1);
+  eq('one node spawned', live.length, 1);
+  const n = live[0];
+  eq('spawns above the ceiling', n.y, -40);
+  eq('spawns falling', n.status, 'falling');
+  ok('spawn x is inside the viewport', n.x >= 0 && n.x <= 600, `x=${n.x}`);
+  ok('spawn char is A-Z', /^[A-Z]$/.test(n.char), n.char);
+
+  for (let i = 0; i < 25; i++) lattice.dispatch('SPAWN');
+  eq('pool caps at ten', stateJS.state.nodes.filter(n => n.active === 1).length, 10);
+}
+
+G('StateJS — hits score, non-matches do not');
+{
+  lattice.dispatch('INIT_GAME');
+  lattice.dispatch('SPAWN');
+  const t = stateJS.state.nodes.find(n => n.active === 1);
+  lattice.dispatch('KEY_PRESS', t.char);
+  eq('a hit scores ten', stateJS.state.score, 10);
+  eq('the struck node is marked hit', t.status, 'hit');
+  const miss = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').find(c => c !== t.char);
+  lattice.dispatch('KEY_PRESS', miss);
+  eq('a non-match does not score', stateJS.state.score, 10);
+}
+
+await flush(90);
+
+G('StateJS — a node past the floor is a miss');
+{
+  lattice.dispatch('INIT_GAME');
+  lattice.dispatch('VIEWPORT_SYNC', { w: 640, h: 100 });
+  lattice.dispatch('SPAWN');
+  lattice.dispatch('TICK', 1000);
+  eq('the miss is counted', stateJS.state.missed, 1);
+  eq('the node is retired', stateJS.state.nodes.filter(n => n.active === 1).length, 0);
+}
+
+G('StateJS — the run ends at ten misses');
+{
+  lattice.dispatch('INIT_GAME');
+  lattice.dispatch('VIEWPORT_SYNC', { w: 640, h: 100 });
+  for (let i = 0; i < 10; i++) lattice.dispatch('SPAWN');
+  eq('ten in flight', stateJS.state.nodes.filter(n => n.active === 1).length, 10);
+  lattice.dispatch('TICK', 1000);
+  eq('ten misses recorded', stateJS.state.missed, 10);
+  eq('the run stops', stateJS.state.isPlaying, false);
+  const before = stateJS.state.missed;
+  lattice.dispatch('TICK', 1000);
+  eq('a stopped run ignores ticks', stateJS.state.missed, before);
+}
+
+// ─── KATAENGINE ─────────────────────────────────────────────────────────────
+
+G('KataEngine — INIT_DOJO');
+{
+  lattice.dispatch('SET_MODE', 'shaolin');
+  lattice.dispatch('INIT_DOJO', ['ab', 'cd']);
+  eq('dojo is active', kataEngine.state.isActive, true);
+  eq('starts at form zero', kataEngine.state.currentFormIdx, 0);
+  eq('starts at char zero', kataEngine.state.currentCharIdx, 0);
+  eq('mistakes reset', kataEngine.state.totalMistakes, 0);
+  eq('no reps owed', kataEngine.state.repsRequired, 0);
+  eq('mode is shaolin', kataEngine.state.mode, 'shaolin');
+}
+
+G('KataEngine — the first character is never skipped');
+{
+  lattice.dispatch('INIT_DOJO', ['chmod +x setup.sh']);
+  const s = kataEngine.state;
+  const form = s.forms[s.currentFormIdx];
+  const idx = s.currentCharIdx;
+  eq('cursor sits on index zero', idx, 0);
+  eq('typed slice is empty', form.slice(0, idx), '');
+  eq('cursor character is the first', form[idx], 'c');
+  eq('typed + cursor + untyped reconstructs the form',
+    form.slice(0, idx) + form[idx] + form.slice(idx + 1), form);
+}
+
+G('KataEngine — correct keys advance');
+{
+  lattice.dispatch('INIT_DOJO', ['ab', 'cd']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  eq('cursor advances', kataEngine.state.currentCharIdx, 1);
+  lattice.dispatch('KEY_PRESS', 'b');
+  eq('form completes and index advances', kataEngine.state.currentFormIdx, 1);
+  eq('cursor rewinds for the new form', kataEngine.state.currentCharIdx, 0);
+}
+
+G('KataEngine — modifier keys are neither hits nor misses');
+{
+  lattice.dispatch('INIT_DOJO', ['ab']);
+  lattice.dispatch('KEY_PRESS', 'Shift');
+  lattice.dispatch('KEY_PRESS', 'ArrowLeft');
+  eq('no mistake recorded', kataEngine.state.totalMistakes, 0);
+  eq('cursor unmoved', kataEngine.state.currentCharIdx, 0);
+}
+
+G('KataEngine — shaolin resets the form and demands four reps');
+{
+  lattice.dispatch('SET_MODE', 'shaolin');
+  lattice.dispatch('INIT_DOJO', ['abc']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'x');
+  eq('the mistake is counted', kataEngine.state.totalMistakes, 1);
+  eq('cursor resets to zero', kataEngine.state.currentCharIdx, 0);
+  eq('four reps are owed', kataEngine.state.repsRequired, 4);
+}
+
+G('KataEngine — forgiving mode counts but holds position');
+{
+  lattice.dispatch('SET_MODE', 'forgiving');
+  lattice.dispatch('INIT_DOJO', ['abc']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'x');
+  eq('the mistake is counted', kataEngine.state.totalMistakes, 1);
+  eq('cursor holds', kataEngine.state.currentCharIdx, 1);
+  eq('no reps are owed', kataEngine.state.repsRequired, 0);
+}
+
+G('KataEngine — reps are served before the form is released');
+{
+  let completed = false;
+  lattice.on('DOJO_COMPLETE', () => { completed = true; });
+  lattice.dispatch('SET_MODE', 'shaolin');
+  lattice.dispatch('INIT_DOJO', ['ab']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'x');
+  eq('four reps owed after the miss', kataEngine.state.repsRequired, 4);
+  for (let rep = 0; rep < 3; rep++) {
+    lattice.dispatch('KEY_PRESS', 'a');
+    lattice.dispatch('KEY_PRESS', 'b');
+  }
+  eq('three served, one owed', kataEngine.state.repsRequired, 1);
+  eq('still on the same form', kataEngine.state.currentFormIdx, 0);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'b');
+  eq('debt cleared', kataEngine.state.repsRequired, 0);
+  eq('dojo closes on the last form', kataEngine.state.isActive, false);
+  ok('DOJO_COMPLETE fired', completed);
+}
+
+G('KataEngine — a closed dojo ignores input');
+{
+  const before = kataEngine.state.totalMistakes;
+  lattice.dispatch('KEY_PRESS', 'z');
+  eq('no mistake recorded after close', kataEngine.state.totalMistakes, before);
+}
+
+// ─── TALLY ──────────────────────────────────────────────────────────────────
+
+const total = passed + failed;
+console.log('\n' + '─'.repeat(64));
+console.log(failed === 0
+  ? `${GRN}SMOKE PASS${OFF}  ${passed}/${total}`
+  : `${RED}SMOKE FAIL${OFF}  ${passed}/${total}   ${failed} failing`);
+console.log('─'.repeat(64) + '\n');
+
+process.exit(failed === 0 ? 0 : 1);

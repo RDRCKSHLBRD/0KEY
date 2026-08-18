@@ -20,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 
 const SINK_FILES = ['CSSVarSink.js', 'cssVarSink.js'];
-const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.backups', 'coverage']);
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.backups', 'coverage', 'browser']);
 const SKIP_FILE = /\.(min|bundle)\.|\.pre-migrate\.|\.backup$|\.bak$/;
 
 // ---------------------------------------------------------------------------

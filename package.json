@@ -1,10 +1,15 @@
 {
   "name": "0key",
   "version": "1.0.0",
-  "description": "",
-  "main": "app.js",
+  "description": "0KEY — typing dojo / arcade. RODUX_ENV.",
+  "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "codex": "node tools/gen-codex.mjs",
+    "conform": "node tools/rodux-conform.mjs .",
+    "smoke": "node tools/smoke.mjs",
+    "check": "npm run conform && npm run smoke"
   },
   "repository": {
     "type": "git",
@@ -14,14 +19,8 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "bugs": {
-    "url": "https://github.com/RDRCKSHLBRD/0KEY/issues"
-  },
+  "bugs": { "url": "https://github.com/RDRCKSHLBRD/0KEY/issues" },
   "homepage": "https://github.com/RDRCKSHLBRD/0KEY#readme",
-  "dependencies": {
-    "express": "^5.2.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
-  }
+  "dependencies": { "express": "^5.2.1" },
+  "devDependencies": { "nodemon": "^3.1.14" }
 }

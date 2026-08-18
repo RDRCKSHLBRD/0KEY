@@ -1,0 +1,2065 @@
+================================================================================
+0KEY — PROJECT CODEX
+environment: RODUX_ENV   schema: CODEX_SCHEMA_V1
+generated:   2026-08-18T03:45:21.701Z
+files:       23
+================================================================================
+
+--------------------------------------------------------------------------------
+MANIFEST
+--------------------------------------------------------------------------------
+    18 lines       414 B  data/bash_kata.json
+    51 lines      1354 B  data/codex.json
+    16 lines       467 B  data/js_kata.json
+    19 lines       515 B  gen-codex.sh
+    27 lines       776 B  package.json
+    34 lines      1403 B  public/arcade.html
+     6 lines       909 B  public/assets/PLATEN-RODUXICA-key.svg
+    75 lines      2266 B  public/core/KataEngine.js
+    18 lines       442 B  public/core/Lattice.js
+    84 lines      2744 B  public/core/StateJS.js
+    38 lines      1444 B  public/dojo.html
+    40 lines      1527 B  public/index.html
+   221 lines      6233 B  public/key.css
+    30 lines       939 B  public/palette.css
+    79 lines      2609 B  public/sink/ArcadeSink.js
+    77 lines      2555 B  public/sink/CSSVarSink.js
+    12 lines       403 B  public/sink/IndexSink.js
+    84 lines      2983 B  public/sink/KataSink.js
+    24 lines       809 B  server.js
+   162 lines      7321 B  tools/browser/probe.js
+   119 lines      3976 B  tools/gen-codex.mjs
+   253 lines     11149 B  tools/rodux-conform.mjs
+   451 lines     19316 B  tools/smoke.mjs
+
+================================================================================
+FILE PATH: data/bash_kata.json
+LINES: 18   BYTES: 414   SHA256: 3ce0548eb2d6cd01
+--------------------------------------------------------------------------------
+{
+  "_meta": {
+    "type": "RODUX_KATA",
+    "module": "BASH_CORE",
+    "description": "Fundamental UNIX pipelines and system traversal."
+  },
+  "forms": [
+    "chmod +x setup.sh",
+    "tree -I node_modules",
+    "ls -la | grep '.json-r'",
+    "cat tools/smoke.mjs | less",
+    "rm -rf .bak/",
+    "find . -name '*.js' -type f",
+    "mkdir -p public/core public/sink",
+    "tar -czvf archive.tar.gz public/"
+  ]
+}
+
+================================================================================
+FILE PATH: data/codex.json
+LINES: 51   BYTES: 1354   SHA256: 5f5298619e07ebf8
+--------------------------------------------------------------------------------
+{
+  "_meta": {
+    "project": "0KEY",
+    "environment": "RODUX_ENV",
+    "schema": "KEY_LATTICE_V1",
+    "description": "Single source of truth for colour roles and geometry. CSS declares no role token and no dimension; the sink stamps both."
+  },
+
+  "geometry": {
+    "--shell-w": "900px",
+    "--shell-h": "600px",
+    "--rule-thin": "2px",
+    "--rule-thick": "4px",
+    "--brand-h": "24px"
+  },
+
+  "arcade": {
+    "--node-size": "40px",
+    "--grid-size": "40px"
+  },
+
+  "themes": {
+    "light": {
+      "--c-bg-core": "var(--p-ink-100)",
+      "--c-surface": "var(--p-white)",
+      "--c-ink-main": "var(--p-ink-900)",
+      "--c-ink-muted": "var(--p-ink-500)",
+      "--c-accent-blue": "var(--p-blue-600)",
+      "--c-accent-red": "var(--p-red-500)",
+      "--c-accent-green": "var(--p-green-500)",
+      "--c-scrim": "var(--p-scrim-light)"
+    },
+    "dark": {
+      "--c-bg-core": "var(--p-ink-900)",
+      "--c-surface": "var(--p-ink-800)",
+      "--c-ink-main": "var(--p-ink-050)",
+      "--c-ink-muted": "var(--p-ink-400)",
+      "--c-accent-blue": "var(--p-blue-500)",
+      "--c-accent-red": "var(--p-red-500)",
+      "--c-accent-green": "var(--p-green-500)",
+      "--c-scrim": "var(--p-scrim-dark)"
+    }
+  },
+
+  "modules": {
+    "index":  { "theme": "light" },
+    "arcade": { "theme": "light" },
+    "dojo":   { "theme": "dark" }
+  }
+}
+
+================================================================================
+FILE PATH: data/js_kata.json
+LINES: 16   BYTES: 467   SHA256: 830de3a9656d482d
+--------------------------------------------------------------------------------
+{
+  "_meta": {
+    "type": "RODUX_KATA",
+    "module": "JS_RODUX_STACK",
+    "description": "Strict ES Module and CSS Variable Sink patterns."
+  },
+  "forms": [
+    "import { lattice } from './Lattice.js';",
+    "el.style.setProperty('--x', node.x);",
+    "lattice.dispatch('STATE_UPDATE', this.state);",
+    "document.addEventListener('DOMContentLoaded', () => {",
+    "const domNodes = document.querySelectorAll('.node');",
+    "requestAnimationFrame(loop);"
+  ]
+}
+
+================================================================================
+FILE PATH: gen-codex.sh
+LINES: 19   BYTES: 515   SHA256: d98b773f0c12b195
+--------------------------------------------------------------------------------
+#!/bin/bash
+# gen-codex.sh - 0KEY Ingestion
+
+OUT="0key_codex.json-r"
+
+node -e "
+const fs = require('fs');
+const files = ['index.html', 'style.css', 'app.js'];
+const codex = {
+  _meta: { project: '0KEY', environment: 'RODUX_ENV', type: 'machine-agent-codex' },
+  payload: files.reduce((acc, f) => {
+    if (fs.existsSync(f)) acc[f] = fs.readFileSync(f, 'utf8');
+    return acc;
+  }, {})
+};
+fs.writeFileSync('$OUT', JSON.stringify(codex, null, 2));
+console.log('\n/// RDX CODEX GENERATED -> ' + '$OUT' + ' ///\n');
+"
+
+================================================================================
+FILE PATH: package.json
+LINES: 27   BYTES: 776   SHA256: 71f020c47bb389b1
+--------------------------------------------------------------------------------
+{
+  "name": "0key",
+  "version": "1.0.0",
+  "description": "0KEY — typing dojo / arcade. RODUX_ENV.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "codex": "node tools/gen-codex.mjs",
+    "conform": "node tools/rodux-conform.mjs .",
+    "smoke": "node tools/smoke.mjs",
+    "check": "npm run conform && npm run smoke"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RDRCKSHLBRD/0KEY.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": { "url": "https://github.com/RDRCKSHLBRD/0KEY/issues" },
+  "homepage": "https://github.com/RDRCKSHLBRD/0KEY#readme",
+  "dependencies": { "express": "^5.2.1" },
+  "devDependencies": { "nodemon": "^3.1.14" }
+}
+
+================================================================================
+FILE PATH: public/arcade.html
+LINES: 34   BYTES: 1403   SHA256: 2ba0c02a620a6e7c
+--------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>>KEY< | ARCADE</title>
+    <link rel="stylesheet" href="palette.css">
+    <link rel="stylesheet" href="key.css">
+</head>
+<body>
+    <div id="rodux-app">
+        <header class="hud">
+            <div class="brand">&gt;KEY&lt; ARCADE</div>
+            <div class="metrics">
+                <span class="label">SCORE</span><span id="ui-score" class="value">000</span>
+                <span class="label">ERRORS</span><span id="ui-missed" class="value">00</span>
+            </div>
+        </header>
+        <main id="viewport">
+            <div class="node" data-index="0"></div><div class="node" data-index="1"></div>
+            <div class="node" data-index="2"></div><div class="node" data-index="3"></div>
+            <div class="node" data-index="4"></div><div class="node" data-index="5"></div>
+            <div class="node" data-index="6"></div><div class="node" data-index="7"></div>
+            <div class="node" data-index="8"></div><div class="node" data-index="9"></div>
+        </main>
+        <div id="overlay" class="active">
+            <h1 class="title">SYSTEM_READY</h1>
+            <button id="btn-init">INITIATE SEQUENCE</button>
+        </div>
+    </div>
+    <script type="module" src="sink/ArcadeSink.js"></script>
+</body>
+</html>
+
+================================================================================
+FILE PATH: public/assets/PLATEN-RODUXICA-key.svg
+LINES: 6   BYTES: 909   SHA256: 79e91eff27ab7d22
+--------------------------------------------------------------------------------
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -43.415 1926.96 783.415" width="1926.96" height="783.415" fill="#231f20">
+  <!-- PLATEN RODUXICA | 3 glyphs | em 1000 cap 700 -->
+  <g transform="translate(0,0)"><g transform="scale(1.707317) translate(-3414 -155.324)"><path d="M3471,380.834v6.93l-3.46-3.46Z"/> <path d="M3729.14,565.324h-80.76L3471,387.764v-6.93l-3.46,3.47,3.46,3.46v177.56h-57v-410h57V303.7l146.8-147.38h77.61L3508.14,344.139Z"/> <path d="M3471,380.834v6.93l-3.46-3.46Z"/></g></g>
+  <g transform="translate(601.044,0)"><g transform="scale(1.707317) translate(-1600 -155.324)"><path d="M1898,508.324v57H1600v-410h297v57H1657v123h159v57H1657v116Z"/></g></g>
+  <g transform="translate(1172.824,-3.415)"><g transform="scale(1.707317) translate(-8626.439 -156.324)"><path d="M9021.29,156.324,8853,343.824v224.5h-57V346.134l-169.561-188.81h71.431l125.55,139.14,126.45-140.14Z"/></g></g>
+</svg>
+
+================================================================================
+FILE PATH: public/core/KataEngine.js
+LINES: 75   BYTES: 2266   SHA256: 13e6096dc2938b10
+--------------------------------------------------------------------------------
+import { lattice } from './Lattice.js';
+
+class KataEngine {
+    constructor() {
+        this.state = {
+            forms: [],
+            currentFormIdx: 0,
+            currentCharIdx: 0,
+            mode: 'shaolin',
+            repsRequired: 0,
+            totalMistakes: 0,
+            isActive: false
+        };
+        
+        lattice.on('INIT_DOJO', (forms) => this.init(forms));
+        lattice.on('KEY_PRESS', (key) => this.handleKey(key));
+        lattice.on('SET_MODE', (mode) => { this.state.mode = mode; lattice.dispatch('KATA_STATE', this.state); });
+    }
+
+    init(forms) {
+        this.state.forms = forms;
+        this.state.currentFormIdx = 0;
+        this.state.currentCharIdx = 0;
+        this.state.repsRequired = 0;
+        this.state.totalMistakes = 0;
+        this.state.isActive = true;
+        lattice.dispatch('KATA_STATE', this.state);
+    }
+
+    handleKey(key) {
+        if (!this.state.isActive || this.state.forms.length === 0) return;
+        
+        if (key.length > 1) return;
+
+        const form = this.state.forms[this.state.currentFormIdx];
+        const expected = form[this.state.currentCharIdx];
+
+        if (key === expected) {
+            this.state.currentCharIdx++;
+            lattice.dispatch('KEY_HIT', key);
+
+            if (this.state.currentCharIdx >= form.length) {
+                this.completeForm();
+            }
+        } else {
+            this.state.totalMistakes++;
+            lattice.dispatch('KEY_MISS', { expected, got: key });
+
+            if (this.state.mode === 'shaolin') {
+                this.state.currentCharIdx = 0;
+                this.state.repsRequired = 4;
+            }
+        }
+        lattice.dispatch('KATA_STATE', this.state);
+    }
+
+    completeForm() {
+        this.state.currentCharIdx = 0;
+        if (this.state.repsRequired > 0) {
+            this.state.repsRequired--;
+            if (this.state.repsRequired === 0) {
+                this.state.currentFormIdx++;
+            }
+        } else {
+            this.state.currentFormIdx++;
+        }
+
+        if (this.state.currentFormIdx >= this.state.forms.length) {
+            this.state.isActive = false;
+            lattice.dispatch('DOJO_COMPLETE', this.state);
+        }
+    }
+}
+export const kataEngine = new KataEngine();
+
+================================================================================
+FILE PATH: public/core/Lattice.js
+LINES: 18   BYTES: 442   SHA256: fe0e3146c0b70195
+--------------------------------------------------------------------------------
+export class Lattice {
+    constructor() {
+        this.listeners = new Map();
+    }
+    
+    on(event, callback) {
+        if (!this.listeners.has(event)) this.listeners.set(event, []);
+        this.listeners.get(event).push(callback);
+    }
+    
+    dispatch(event, payload) {
+        if (this.listeners.has(event)) {
+            this.listeners.get(event).forEach(cb => cb(payload));
+        }
+    }
+}
+export const lattice = new Lattice();
+
+================================================================================
+FILE PATH: public/core/StateJS.js
+LINES: 84   BYTES: 2744   SHA256: 1cee890701603284
+--------------------------------------------------------------------------------
+import { lattice } from './Lattice.js';
+
+class StateJS {
+    constructor() {
+        this.state = {
+            isPlaying: false,
+            score: 0,
+            missed: 0,
+            maxMisses: 10,
+            viewportWidth: 800,
+            viewportHeight: 600 - 60,
+            speed: 1.5,
+            nodes: Array(10).fill(null).map(() => ({ 
+                active: 0, char: '', x: 0, y: 0, status: 'falling' 
+            }))
+        };
+        this.alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        
+        lattice.on('INIT_GAME', () => this.start());
+        lattice.on('TICK', (dt) => this.tick(dt));
+        lattice.on('KEY_PRESS', (key) => this.handleKey(key));
+        lattice.on('SPAWN', () => this.spawn());
+        lattice.on('VIEWPORT_SYNC', (dim) => {
+            this.state.viewportWidth = dim.w;
+            this.state.viewportHeight = dim.h;
+        });
+    }
+
+    start() {
+        this.state.score = 0;
+        this.state.missed = 0;
+        this.state.nodes.forEach(n => n.active = 0);
+        this.state.isPlaying = true;
+        lattice.dispatch('STATE_UPDATE', this.state);
+    }
+
+    spawn() {
+        if (!this.state.isPlaying) return;
+        const inactiveNode = this.state.nodes.find(n => n.active === 0);
+        if (inactiveNode) {
+            inactiveNode.active = 1;
+            inactiveNode.char = this.alphabet[Math.floor(Math.random() * this.alphabet.length)];
+            inactiveNode.x = Math.floor(Math.random() * (this.state.viewportWidth - 40));
+            inactiveNode.y = -40;
+            inactiveNode.status = 'falling';
+        }
+    }
+
+    tick(deltaTime) {
+        if (!this.state.isPlaying) return;
+        
+        this.state.nodes.forEach(node => {
+            if (node.active === 1 && node.status === 'falling') {
+                node.y += this.state.speed * (deltaTime / 10);
+                if (node.y > this.state.viewportHeight) {
+                    node.active = 0;
+                    this.state.missed++;
+                    if (this.state.missed >= this.state.maxMisses) {
+                        this.state.isPlaying = false;
+                    }
+                }
+            }
+        });
+        
+        lattice.dispatch('STATE_UPDATE', this.state);
+    }
+
+    handleKey(key) {
+        if (!this.state.isPlaying) return;
+        
+        const target = this.state.nodes.find(n => n.active === 1 && n.char === key && n.status === 'falling');
+        if (target) {
+            target.status = 'hit';
+            this.state.score += 10;
+            setTimeout(() => {
+                target.active = 0;
+                target.status = 'falling';
+            }, 50);
+        }
+        lattice.dispatch('STATE_UPDATE', this.state);
+    }
+}
+export const stateJS = new StateJS();
+
+================================================================================
+FILE PATH: public/dojo.html
+LINES: 38   BYTES: 1444   SHA256: 6fad5ade906696a0
+--------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>>KEY< | DOJO</title>
+    <link rel="stylesheet" href="palette.css">
+    <link rel="stylesheet" href="key.css">
+</head>
+<body>
+    <div id="rodux-app">
+        <header class="hud">
+            <img src="assets/PLATEN-RODUXICA-key.svg" class="brand-svg" alt="RODUXICA KEY">
+            <div class="controls">
+                <label class="toggle">
+                    <input type="checkbox" id="mode-toggle" checked>
+                    <span class="label-text">SHAOLIN MODE</span>
+                </label>
+            </div>
+            <div class="metrics">
+                <span class="label">MISTAKES</span><span id="ui-mistakes" class="value">000</span>
+                <span class="label" id="rep-label" data-visible="0">REPS</span><span id="ui-reps" class="value" data-visible="0">0</span>
+            </div>
+        </header>
+        <main id="viewport">
+            <div id="kata-display">
+                <span id="text-typed"></span><span id="text-cursor"></span><span id="text-untyped"></span>
+            </div>
+        </main>
+        <div id="overlay" class="active">
+            <h1 class="title">DOJO_READY</h1>
+            <button id="btn-init">LOAD UNIX BASH KATA</button>
+        </div>
+    </div>
+    <script type="module" src="sink/KataSink.js"></script>
+</body>
+</html>
+
+================================================================================
+FILE PATH: public/index.html
+LINES: 40   BYTES: 1527   SHA256: b0e95e2f557375d7
+--------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>>KEY< | CONTROL_ROOM</title>
+    <link rel="stylesheet" href="palette.css">
+    <link rel="stylesheet" href="key.css">
+</head>
+<body>
+    <div id="rodux-app">
+        <header class="hud">
+            <div class="brand">&gt;KEY&lt; SYSTEM_CONTROL</div>
+            <div class="metrics">
+                <span class="label">NODE_STATUS</span><span class="value">ONLINE</span>
+            </div>
+        </header>
+        <main id="viewport">
+            <div id="module-choice">
+                <div class="choice-head">
+                    <h1>CHOOSE_MODULE_V1</h1>
+                    <p>SELECT COMPUTATIONAL PIPELINE FOR COGNITIVE ENGAGEMENT</p>
+                </div>
+                <div class="choice-rack">
+                    <a href="dojo.html" class="choice-card">
+                        <h2>01_KATA_DOJO</h2>
+                        <p>STRICT MUSCLE MEMORY TRAINING. SHAOLIN MODE ENFORCES ABSOLUTE PRECISION. RESETS PIPELINE ON ERROR.</p>
+                    </a>
+                    <a href="arcade.html" class="choice-card">
+                        <h2>02_ARCADE_MATRIX</h2>
+                        <p>FALLING VARIABLE VECTOR TRAVERSAL. SPATIAL POSITIONING AND VELOCITY SCALE MANAGEMENT.</p>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="sink/IndexSink.js"></script>
+</body>
+</html>
+
+================================================================================
+FILE PATH: public/key.css
+LINES: 221   BYTES: 6233   SHA256: 689abd194d2ccad2
+--------------------------------------------------------------------------------
+/* ---------------------------------------------------------------------------
+   0KEY — STYLESHEET
+   path: public/key.css
+
+   One sheet for all three modules. Declares no colour and no dimension —
+   every --c-* and every geometry token arrives stamped from data/codex.json
+   by way of CSSVarSink. This file only says what goes where.
+
+   Module differences ride on [data-module], stamped on <html> at boot.
+   --------------------------------------------------------------------------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 0;
+    font-family: monospace;
+}
+
+body {
+    background-color: var(--c-bg-core);
+    color: var(--c-ink-main);
+    height: var(--app-h);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#rodux-app {
+    width: var(--shell-w);
+    height: var(--shell-h);
+    background: var(--c-surface);
+    border: var(--rule-thin) solid var(--c-ink-main);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+[data-module="dojo"] #rodux-app { border-color: var(--c-ink-muted); }
+
+/* --- HUD ----------------------------------------------------------------- */
+
+.hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--c-ink-main);
+    color: var(--c-surface);
+    border-bottom: var(--rule-thick) solid var(--c-accent-blue);
+}
+
+[data-module="dojo"] .hud {
+    background: var(--c-bg-core);
+    color: var(--c-ink-main);
+    border-bottom: var(--rule-thin) solid var(--c-ink-muted);
+}
+
+.brand { font-weight: 800; }
+.brand-svg { height: var(--brand-h); width: auto; }
+.metrics { display: flex; gap: 1.5rem; }
+.label { color: var(--c-ink-muted); margin-right: 0.5rem; }
+
+[data-module="dojo"] .metrics { font-weight: 800; }
+[data-module="dojo"] .label { font-size: 0.9rem; }
+
+.toggle { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+.label-text { font-weight: 800; font-size: 0.9rem; color: var(--c-ink-muted); }
+input:checked + .label-text { color: var(--c-accent-red); }
+
+/* Visibility is a stamped state, never a style write. */
+[data-visible="0"] { display: none; }
+[data-visible="1"] { display: inline; }
+
+#rep-label, #ui-reps { color: var(--c-accent-red); }
+
+/* --- VIEWPORT ------------------------------------------------------------ */
+
+#viewport { flex: 1; position: relative; background: var(--c-surface); }
+
+[data-module="arcade"] #viewport {
+    background-image: linear-gradient(var(--c-bg-core) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--c-bg-core) 1px, transparent 1px);
+    background-size: var(--grid-size) var(--grid-size);
+}
+
+[data-module="dojo"] #viewport {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    transition: background 0.1s;
+}
+
+[data-module="dojo"] #viewport.error-flash { background: var(--c-accent-red); }
+
+/* --- ARCADE NODES -------------------------------------------------------- */
+/* --x and --y arrive with units applied, so translate() needs no arithmetic. */
+
+[data-module="arcade"] .node {
+    position: absolute;
+    width: var(--node-size);
+    height: var(--node-size);
+    background: var(--c-ink-main);
+    color: var(--c-surface);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 1.2rem;
+    transform: translate(var(--x, -100px), var(--y, -100px));
+    opacity: var(--active, 0);
+}
+
+[data-module="arcade"] .node::after { content: var(--char, ""); }
+[data-module="arcade"] .node[data-status="hit"] { background: var(--c-accent-blue); }
+
+/* --- DOJO KATA DISPLAY --------------------------------------------------- */
+
+#kata-display {
+    font-size: 2rem;
+    font-weight: 600;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+#text-typed { color: var(--c-accent-green); }
+#text-untyped { color: var(--c-ink-muted); }
+#text-cursor {
+    background: var(--c-ink-main);
+    color: var(--c-bg-core);
+    animation: blink 1s step-end infinite;
+}
+
+/* The glyph must stay legible — blink the highlight, not the character. */
+@keyframes blink { 50% { background: transparent; color: var(--c-ink-main); } }
+
+/* --- OVERLAY ------------------------------------------------------------- */
+
+#overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--c-scrim);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    display: none;
+}
+
+#overlay.active { display: flex; }
+
+/* --- BUTTONS ------------------------------------------------------------- */
+
+button {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    background: var(--c-ink-main);
+    color: var(--c-surface);
+    border: none;
+    font-weight: 800;
+    cursor: pointer;
+    border-bottom: var(--rule-thick) solid var(--c-accent-blue);
+}
+
+button:hover {
+    background: var(--c-accent-blue);
+    border-bottom-color: var(--c-ink-main);
+}
+
+[data-module="dojo"] button {
+    background: var(--c-surface);
+    color: var(--c-ink-main);
+    border: var(--rule-thin) solid var(--c-ink-muted);
+    transition: all 0.2s;
+}
+
+[data-module="dojo"] button:hover {
+    background: var(--c-ink-main);
+    color: var(--c-bg-core);
+}
+
+/* --- CONTROL ROOM -------------------------------------------------------- */
+
+#module-choice {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    height: 100%;
+}
+
+.choice-head { text-align: center; margin-bottom: 2rem; }
+
+.choice-head h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -2px;
+    margin-bottom: 0.5rem;
+}
+
+.choice-head p { color: var(--c-ink-muted); font-size: 0.9rem; }
+
+.choice-rack { display: flex; gap: 2rem; width: 100%; max-width: 600px; }
+
+.choice-card {
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    border: var(--rule-thin) solid var(--c-ink-main);
+    padding: 2rem;
+    background: var(--c-surface);
+    cursor: pointer;
+}
+
+.choice-card:hover { border-color: var(--c-accent-blue); }
+.choice-card h2 { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 800; }
+.choice-card p { font-size: 0.85rem; color: var(--c-ink-muted); line-height: 1.4; }
+
+================================================================================
+FILE PATH: public/palette.css
+LINES: 30   BYTES: 939   SHA256: c3a7b995ed644134
+--------------------------------------------------------------------------------
+/* ---------------------------------------------------------------------------
+   0KEY — PALETTE
+   path: public/palette.css
+
+   Raw colour only. One name per value, one value per name — no aliases, no
+   redefinitions, no theme blocks. This is the only file in the project that
+   contains a hex literal.
+
+   Role tokens (--c-*) are NOT declared here. The sink stamps them from
+   data/codex.json, which maps each role to one of these palette entries.
+   --------------------------------------------------------------------------- */
+
+:root {
+    --p-ink-900: #111827;
+    --p-ink-800: #1F2937;
+    --p-ink-500: #6B7280;
+    --p-ink-400: #9CA3AF;
+    --p-ink-100: #E5E7EB;
+    --p-ink-050: #F3F4F6;
+    --p-white:   #FFFFFF;
+
+    --p-blue-600:  #2563EB;
+    --p-blue-500:  #3B82F6;
+    --p-red-500:   #EF4444;
+    --p-green-500: #10B981;
+
+    --p-scrim-light: rgba(255, 255, 255, 0.95);
+    --p-scrim-dark:  rgba(17, 24, 39, 0.95);
+}
+
+================================================================================
+FILE PATH: public/sink/ArcadeSink.js
+LINES: 79   BYTES: 2609   SHA256: 20d7cacbfb894dbd
+--------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 0KEY — ArcadeSink
+// path: public/sink/ArcadeSink.js
+//
+// Orchestrator for the arcade. Reads StateJS, hands values to CSSVarSink.
+// Makes no DOM writes of its own and holds no game state.
+// ---------------------------------------------------------------------------
+
+import { lattice } from '../core/Lattice.js';
+import { boot, stampVars, stampState, stampText, stampClass } from './CSSVarSink.js';
+import '../core/StateJS.js';
+
+const ready = new Promise(r => document.addEventListener('DOMContentLoaded', r));
+
+await boot('arcade');
+await ready;
+
+const domNodes = document.querySelectorAll('.node');
+const uiScore = document.getElementById('ui-score');
+const uiMissed = document.getElementById('ui-missed');
+const overlay = document.getElementById('overlay');
+const overlayTitle = overlay.querySelector('.title');
+const btnInit = document.getElementById('btn-init');
+const viewport = document.getElementById('viewport');
+
+// The viewport is the arcade's world. Keep it measured — spawn bounds and
+// floor detection both read these numbers.
+const syncViewport = () => lattice.dispatch('VIEWPORT_SYNC', {
+    w: viewport.clientWidth,
+    h: viewport.clientHeight
+});
+
+syncViewport();
+window.addEventListener('resize', syncViewport);
+
+lattice.on('STATE_UPDATE', (state) => {
+    state.nodes.forEach((node, idx) => {
+        const el = domNodes[idx];
+        if (!el) return;
+
+        stampVars(el, {
+            '--x': `${node.x}px`,
+            '--y': `${node.y}px`,
+            '--active': node.active,
+            '--char': `"${node.char}"`
+        });
+
+        stampState(el, 'status', node.status);
+    });
+
+    stampText(uiScore, state.score.toString().padStart(3, '0'));
+    stampText(uiMissed, state.missed.toString().padStart(2, '0'));
+
+    if (!state.isPlaying && state.missed >= state.maxMisses) {
+        stampClass(overlay, 'active', true);
+        stampText(overlayTitle, 'SYSTEM_FAILURE');
+    } else if (state.isPlaying) {
+        stampClass(overlay, 'active', false);
+    }
+});
+
+window.addEventListener('keydown', (e) => {
+    const key = e.key.toUpperCase();
+    if (/^[A-Z]$/.test(key)) lattice.dispatch('KEY_PRESS', key);
+});
+
+btnInit.addEventListener('click', () => lattice.dispatch('INIT_GAME', null));
+
+let lastTime = performance.now();
+function loop(timestamp) {
+    const deltaTime = timestamp - lastTime;
+    lastTime = timestamp;
+    lattice.dispatch('TICK', deltaTime);
+    requestAnimationFrame(loop);
+}
+
+setInterval(() => lattice.dispatch('SPAWN', null), 1000);
+requestAnimationFrame(loop);
+
+================================================================================
+FILE PATH: public/sink/CSSVarSink.js
+LINES: 77   BYTES: 2555   SHA256: 29b968781487e446
+--------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 0KEY — CSSVarSink
+// path: public/sink/CSSVarSink.js
+//
+// The sole low-level DOM writer, and the only reader of data/codex.json.
+//
+// A sink stamps values. It does not make decisions:
+//   allowed   custom properties, textContent, data-* attributes, classes
+//   refused   layout properties, innerHTML, cssText, standard setProperty
+//
+// boot(module) fetches the codex, stamps geometry + the module's theme roles
+// onto <html>, tags [data-module], and returns the codex. Every page awaits it
+// before wiring anything.
+// ---------------------------------------------------------------------------
+
+const CODEX_SOURCE = '/data/codex.json';
+
+export function stampVar(el, name, value) {
+    el.style.setProperty(name, value);
+}
+
+export function stampVars(el, tokens) {
+    for (const [name, value] of Object.entries(tokens)) {
+        el.style.setProperty(name, value);
+    }
+}
+
+export function stampState(el, key, value) {
+    const next = String(value);
+    if (el.dataset[key] !== next) el.dataset[key] = next;
+}
+
+export function stampText(el, text) {
+    const next = String(text);
+    if (el.textContent !== next) el.textContent = next;
+}
+
+export function stampClass(el, name, on) {
+    el.classList.toggle(name, Boolean(on));
+}
+
+/** Measure the shell. No stylesheet ever asks the viewport for its own size. */
+export function stampShell() {
+    stampVars(document.documentElement, {
+        '--app-w': `${window.innerWidth}px`,
+        '--app-h': `${window.innerHeight}px`
+    });
+}
+
+/**
+ * Read the codex and dress the document for one module.
+ * Throws loudly if the module is not declared — a silent fallback would mean
+ * a page rendering with no roles stamped and no clue why.
+ */
+export async function boot(moduleName) {
+    stampShell();
+    window.addEventListener('resize', stampShell);
+
+    const res = await fetch(CODEX_SOURCE);
+    if (!res.ok) throw new Error(`CODEX UNREACHABLE ${res.status} ${CODEX_SOURCE}`);
+    const codex = await res.json();
+
+    const entry = codex.modules?.[moduleName];
+    if (!entry) throw new Error(`CODEX DECLARES NO MODULE "${moduleName}"`);
+
+    const theme = codex.themes?.[entry.theme];
+    if (!theme) throw new Error(`CODEX DECLARES NO THEME "${entry.theme}"`);
+
+    const root = document.documentElement;
+    stampVars(root, codex.geometry ?? {});
+    stampVars(root, theme);
+    if (moduleName === 'arcade') stampVars(root, codex.arcade ?? {});
+
+    stampState(root, 'module', moduleName);
+    return codex;
+}
+
+================================================================================
+FILE PATH: public/sink/IndexSink.js
+LINES: 12   BYTES: 403   SHA256: aab931b58d5e9ee7
+--------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 0KEY — IndexSink
+// path: public/sink/IndexSink.js
+//
+// The control room has no state. It only needs the codex dressed onto the
+// document, which is exactly what boot() does.
+// ---------------------------------------------------------------------------
+
+import { boot } from './CSSVarSink.js';
+
+await boot('index');
+
+================================================================================
+FILE PATH: public/sink/KataSink.js
+LINES: 84   BYTES: 2983   SHA256: ce6061be73685a20
+--------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 0KEY — KataSink
+// path: public/sink/KataSink.js
+//
+// Orchestrator for the dojo. Reads KataEngine, hands values to CSSVarSink.
+// Makes no DOM writes of its own and holds no kata state.
+//
+// The rep counter's visibility is a data-* state, not a style write. CSS
+// decides what data-visible="0" looks like; this file only reports it.
+// ---------------------------------------------------------------------------
+
+import { lattice } from '../core/Lattice.js';
+import { boot, stampState, stampText, stampClass } from './CSSVarSink.js';
+import '../core/KataEngine.js';
+
+const KATA_SOURCE = '/data/bash_kata.json';
+
+const ready = new Promise(r => document.addEventListener('DOMContentLoaded', r));
+
+await boot('dojo');
+await ready;
+
+const uiMistakes = document.getElementById('ui-mistakes');
+const uiReps = document.getElementById('ui-reps');
+const repLabel = document.getElementById('rep-label');
+const typedSpan = document.getElementById('text-typed');
+const cursorSpan = document.getElementById('text-cursor');
+const untypedSpan = document.getElementById('text-untyped');
+const overlay = document.getElementById('overlay');
+const overlayTitle = overlay.querySelector('.title');
+const viewport = document.getElementById('viewport');
+const modeToggle = document.getElementById('mode-toggle');
+const btnInit = document.getElementById('btn-init');
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.key === '/') e.preventDefault();
+    lattice.dispatch('KEY_PRESS', e.key);
+});
+
+modeToggle.addEventListener('change', (e) => {
+    lattice.dispatch('SET_MODE', e.target.checked ? 'shaolin' : 'forgiving');
+});
+
+lattice.on('KATA_STATE', (state) => {
+    stampText(uiMistakes, state.totalMistakes.toString().padStart(3, '0'));
+
+    const owed = state.repsRequired > 0;
+    stampState(uiReps, 'visible', owed ? 1 : 0);
+    stampState(repLabel, 'visible', owed ? 1 : 0);
+    if (owed) stampText(uiReps, state.repsRequired);
+
+    if (state.isActive && state.forms.length > 0) {
+        stampClass(overlay, 'active', false);
+
+        const form = state.forms[state.currentFormIdx];
+        const idx = state.currentCharIdx;
+
+        stampText(typedSpan, form.slice(0, idx));
+        stampText(cursorSpan, form[idx] || '');
+        stampText(untypedSpan, form.slice(idx + 1));
+    }
+});
+
+lattice.on('KEY_MISS', () => {
+    stampClass(viewport, 'error-flash', true);
+    setTimeout(() => stampClass(viewport, 'error-flash', false), 100);
+});
+
+lattice.on('DOJO_COMPLETE', () => {
+    stampClass(overlay, 'active', true);
+    stampText(overlayTitle, 'KATA_MASTERED');
+    stampText(btnInit, 'RESTART DOJO');
+});
+
+btnInit.addEventListener('click', async () => {
+    try {
+        const res = await fetch(KATA_SOURCE);
+        const codex = await res.json();
+        lattice.dispatch('INIT_DOJO', codex.forms);
+    } catch (err) {
+        console.error('KATA INGESTION FAILED', err);
+    }
+});
+
+================================================================================
+FILE PATH: server.js
+LINES: 24   BYTES: 809   SHA256: b77c2f0ec438a113
+--------------------------------------------------------------------------------
+import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const app = express();
+const PORT = 10001;
+
+// Silence the browser's automatic favicon request rather than 404 on it.
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Probe harness — a tool, not app code. Served, never bundled.
+app.use('/probe.js', express.static(path.join(__dirname, 'tools/browser/probe.js')));
+
+// Route static assets for the client
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Authorize the data directory route for the JSON codex payloads
+app.use('/data', express.static(path.join(__dirname, 'data')));
+
+app.listen(PORT, () => {
+    console.log(`\n/// 0KEY RUNNING ON PORT ${PORT} ///\n`);
+});
+
+================================================================================
+FILE PATH: tools/browser/probe.js
+LINES: 162   BYTES: 7321   SHA256: da53f8d3a19907c5
+--------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// 0KEY — BROWSER PROBE
+// path: public/probe.js
+//
+// Verifies at runtime what the Node gate cannot see: that every role token
+// actually resolves to a colour, that geometry is stamped, and that no page
+// carries inline style writes.
+//
+// Run on any page:
+//     await import('/probe.js')
+// or paste this file's contents straight into the console.
+// ---------------------------------------------------------------------------
+
+async function RDXProbe() {
+    const RUNTIME = ['--app-w', '--app-h', '--x', '--y', '--active', '--char'];
+    const root = document.documentElement;
+    const cs = getComputedStyle(root);
+    let pass = 0, fail = 0;
+    const fails = [];
+
+    const ok = (desc, cond, detail = '') => {
+        if (cond) { pass++; console.log(`%c ok %c ${desc}`, 'color:#10B981', ''); }
+        else {
+            fail++; fails.push(desc);
+            console.log(`%cFAIL%c ${desc}${detail ? '  — ' + detail : ''}`, 'color:#EF4444', '');
+        }
+    };
+
+    const raw = name => cs.getPropertyValue(name).trim();
+
+    /** Does `var(name)` actually produce a colour, or does the chain break? */
+    function resolvesToColour(name) {
+        const el = document.createElement('div');
+        el.style.position = 'absolute';
+        el.style.visibility = 'hidden';
+        el.style.backgroundColor = `var(${name})`;
+        document.body.appendChild(el);
+        const v = getComputedStyle(el).backgroundColor;
+        el.remove();
+        return (v && v !== 'rgba(0, 0, 0, 0)') ? v : null;
+    }
+
+    console.log('%c0KEY PROBE', 'font-weight:800;font-size:14px');
+
+    // --- page identity -----------------------------------------------------
+    console.group('page identity');
+    ok('title carries >KEY<', document.title.includes('>KEY<'), document.title);
+
+    const sheets = [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.getAttribute('href'));
+    ok('links palette.css', sheets.some(h => h.endsWith('palette.css')), sheets.join(', '));
+    ok('links key.css', sheets.some(h => h.endsWith('key.css')), sheets.join(', '));
+    ok('links no other stylesheet', sheets.length === 2, sheets.join(', '));
+
+    const mod = root.dataset.module;
+    ok('data-module is stamped', Boolean(mod), String(mod));
+    ok('data-module is a known module', ['index', 'arcade', 'dojo'].includes(mod), String(mod));
+    console.groupEnd();
+
+    // --- geometry ----------------------------------------------------------
+    console.group('geometry');
+    for (const g of ['--shell-w', '--shell-h', '--rule-thin', '--rule-thick', '--brand-h']) {
+        ok(`${g} stamped`, /^\d/.test(raw(g)), raw(g) || '(empty)');
+    }
+    ok('--app-w tracks innerWidth', raw('--app-w') === `${window.innerWidth}px`, raw('--app-w'));
+    ok('--app-h tracks innerHeight', raw('--app-h') === `${window.innerHeight}px`, raw('--app-h'));
+
+    if (mod === 'arcade') {
+        ok('--node-size stamped', /^\d/.test(raw('--node-size')), raw('--node-size'));
+        ok('--grid-size stamped', /^\d/.test(raw('--grid-size')), raw('--grid-size'));
+    }
+
+    const shell = document.getElementById('rodux-app');
+    if (shell) {
+        const want = parseFloat(raw('--shell-w'));
+        ok('shell measures --shell-w', Math.abs(shell.offsetWidth - want) < 1,
+            `measured ${shell.offsetWidth}, stamped ${want}`);
+    }
+    console.groupEnd();
+
+    // --- roles resolve to real colour --------------------------------------
+    console.group('colour roles');
+    const ROLES = ['--c-bg-core', '--c-surface', '--c-ink-main', '--c-ink-muted',
+                   '--c-accent-blue', '--c-accent-red', '--c-accent-green', '--c-scrim'];
+    for (const r of ROLES) {
+        const v = resolvesToColour(r);
+        ok(`${r} resolves`, v !== null, v === null ? `${raw(r) || '(unstamped)'} does not resolve` : v);
+    }
+    console.groupEnd();
+
+    // --- every var() used in CSS is accounted for --------------------------
+    // Checked against data/codex.json, not a hardcoded list. Tokens scoped to
+    // another module are excluded rather than reported missing.
+    console.group('token coverage');
+    const codex = await (await fetch('/data/codex.json')).json();
+    const moduleScoped = new Set(Object.keys(codex.arcade ?? {}));
+    const notThisModule = mod === 'arcade' ? new Set() : moduleScoped;
+
+    const expected = new Set([
+        ...Object.keys(codex.geometry ?? {}),
+        ...Object.keys(codex.themes?.[codex.modules?.[mod]?.theme] ?? {}),
+        ...(mod === 'arcade' ? moduleScoped : []),
+        ...RUNTIME
+    ]);
+
+    let cssText = '';
+    for (const sheet of document.styleSheets) {
+        try { for (const rule of sheet.cssRules) cssText += rule.cssText + '\n'; }
+        catch { /* cross-origin sheet, skip */ }
+    }
+    const used = [...new Set([...cssText.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]))];
+
+    const unresolved = used.filter(n =>
+        !notThisModule.has(n) && !expected.has(n) && !raw(n) && !cssText.includes(`${n}:`));
+    ok(`all ${used.length} referenced tokens are declared or stamped`,
+        unresolved.length === 0, unresolved.join(', '));
+
+    // Stronger: everything the codex promises this module is actually present.
+    const promised = [...expected].filter(n => !RUNTIME.includes(n));
+    const unstamped = promised.filter(n => !raw(n));
+    ok(`all ${promised.length} codex tokens for "${mod}" are stamped`,
+        unstamped.length === 0, unstamped.join(', '));
+    console.groupEnd();
+
+    // --- no inline style writes --------------------------------------------
+    // The sink stamps custom properties only. A standard property in a style
+    // attribute means hand-written markup or a foreign file.
+    console.group('inline style audit');
+    const offenders = [];
+    for (const el of document.querySelectorAll('[style]')) {
+        const std = [...el.style].filter(p => !p.startsWith('--'));
+        if (std.length) offenders.push(`${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}: ${std.join(', ')}`);
+    }
+    ok('no standard properties written inline', offenders.length === 0, offenders.slice(0, 5).join(' | '));
+    console.groupEnd();
+
+    // --- dojo cursor -------------------------------------------------------
+    if (mod === 'dojo') {
+        console.group('dojo');
+        const cur = document.getElementById('text-cursor');
+        const typed = document.getElementById('text-typed');
+        const untyped = document.getElementById('text-untyped');
+        const whole = (typed?.textContent || '') + (cur?.textContent || '') + (untyped?.textContent || '');
+        console.log(`  cursor char: ${JSON.stringify(cur?.textContent)}`);
+        console.log(`  full form:   ${JSON.stringify(whole)}`);
+        ok('cursor holds a character when a kata is loaded',
+            whole.length === 0 || (cur?.textContent || '').length === 1,
+            'if this fails the form is losing its first character');
+        console.groupEnd();
+    }
+
+    const total = pass + fail;
+    console.log(
+        `%cPROBE ${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${total}`,
+        `font-weight:800;color:${fail === 0 ? '#10B981' : '#EF4444'}`
+    );
+    if (fail) console.log('failing:', fails);
+
+    return { pass, fail, total };
+}
+
+export default await RDXProbe();
+
+================================================================================
+FILE PATH: tools/gen-codex.mjs
+LINES: 119   BYTES: 3976   SHA256: 29aa77d80ee42319
+--------------------------------------------------------------------------------
+#!/usr/bin/env node
+// ---------------------------------------------------------------------------
+// 0KEY — CODEX GENERATOR
+// path: tools/gen-codex.mjs
+//
+//   0key_codex.json-r   machine codex (full payload, single source of truth)
+//   0key_codex.txt      reading codex (80-rule separators, FILE PATH: headers)
+//
+// Walks the real filesystem. All paths resolve against this module, never CWD.
+// ---------------------------------------------------------------------------
+
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, sep, extname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const ROOT = join(__dirname, '..');
+
+const SKIP_DIRS = new Set(['node_modules', '.git', '.archive', 'dist', 'build', 'coverage', '.vscode']);
+const SKIP_FILES = new Set(['package-lock.json', '0key_codex.json-r', '0key_codex.txt']);
+const SKIP_EXT = /\.(pre-rodux|orphan|bak|backup)$/;
+const INCLUDE_EXT = new Set(['.html', '.css', '.js', '.mjs', '.cjs', '.json', '.json-r', '.sh', '.svg', '.md']);
+const MAX_INLINE_BYTES = 24000;
+
+const RULE = '='.repeat(80);
+const SUB = '-'.repeat(80);
+
+function walk(dir, out = []) {
+  for (const name of readdirSync(dir).sort()) {
+    if (name.startsWith('.')) continue;
+    const abs = join(dir, name);
+    if (statSync(abs).isDirectory()) {
+      if (!SKIP_DIRS.has(name)) walk(abs, out);
+      continue;
+    }
+    if (SKIP_FILES.has(name) || SKIP_EXT.test(name)) continue;
+    if (!INCLUDE_EXT.has(extname(name))) continue;
+    out.push(abs);
+  }
+  return out;
+}
+
+const files = walk(ROOT);
+if (!files.length) {
+  console.error('gen-codex: no files collected — check SKIP/INCLUDE rules and ROOT.');
+  process.exit(1);
+}
+
+const payload = {};
+const manifest = [];
+
+for (const abs of files) {
+  const rel = relative(ROOT, abs).split(sep).join('/');
+  const text = readFileSync(abs, 'utf8');
+  const bytes = Buffer.byteLength(text, 'utf8');
+  payload[rel] = text;
+  manifest.push({
+    path: rel,
+    bytes,
+    lines: text.split('\n').length,
+    sha256: createHash('sha256').update(text).digest('hex').slice(0, 16),
+    elidedInReadingCodex: bytes > MAX_INLINE_BYTES
+  });
+}
+
+const generated = new Date().toISOString();
+
+const codex = {
+  _meta: {
+    project: '0KEY',
+    environment: 'RODUX_ENV',
+    type: 'machine-agent-codex',
+    schema: 'CODEX_SCHEMA_V1',
+    generated,
+    fileCount: manifest.length,
+    totalBytes: manifest.reduce((n, m) => n + m.bytes, 0),
+    manifest
+  },
+  payload
+};
+
+const jsonPath = join(ROOT, '0key_codex.json-r');
+writeFileSync(jsonPath, JSON.stringify(codex, null, 2) + '\n', 'utf8');
+
+let txt = RULE + '\n0KEY — PROJECT CODEX\n';
+txt += `environment: RODUX_ENV   schema: CODEX_SCHEMA_V1\n`;
+txt += `generated:   ${generated}\nfiles:       ${manifest.length}\n` + RULE + '\n\n';
+txt += SUB + '\nMANIFEST\n' + SUB + '\n';
+for (const m of manifest) {
+  txt += `${String(m.lines).padStart(6)} lines  ${String(m.bytes).padStart(8)} B  ${m.path}`;
+  txt += m.elidedInReadingCodex ? '  [ELIDED]\n' : '\n';
+}
+txt += '\n';
+
+for (const m of manifest) {
+  txt += RULE + `\nFILE PATH: ${m.path}\n`;
+  txt += `LINES: ${m.lines}   BYTES: ${m.bytes}   SHA256: ${m.sha256}\n` + SUB + '\n';
+  if (m.elidedInReadingCodex) {
+    txt += `[elided — ${m.bytes} bytes exceeds MAX_INLINE_BYTES ${MAX_INLINE_BYTES}]\n`;
+    txt += `[full content present in 0key_codex.json-r]\n`;
+  } else {
+    const body = payload[m.path];
+    txt += body.endsWith('\n') ? body : body + '\n';
+  }
+  txt += '\n';
+}
+
+writeFileSync(join(ROOT, '0key_codex.txt'), txt, 'utf8');
+
+console.log(RULE);
+console.log('0KEY CODEX GENERATED');
+console.log(RULE);
+console.log(`root            ${ROOT}`);
+console.log(`files collected ${manifest.length}`);
+console.log(`total bytes     ${codex._meta.totalBytes}`);
+console.log('');
+for (const m of manifest) console.log(`  ${m.path}`);
+
+================================================================================
+FILE PATH: tools/rodux-conform.mjs
+LINES: 253   BYTES: 11149   SHA256: 2ecb0c0649e82cec
+--------------------------------------------------------------------------------
+#!/usr/bin/env node
+/**
+ * rodux-conform — RODUX doctrine conformance checker
+ *
+ *   node rodux-conform.mjs <dir> [--json] [--quiet] [--fail-on N]
+ *
+ * Rules
+ *   R1  DOM writes outside the sink        (JS)   CSS is a dumb renderer; only
+ *                                                 CSSVarSink.js touches the DOM.
+ *   R2  Layout decisions inside CSS        (CSS)  @media/calc/vw/vh/clamp mean CSS
+ *                                                 is deciding; JS owns layout math.
+ *   R3  Token hygiene                      (CSS)  Raw hex outside :root, and two
+ *                                                 token names for one value.
+ *
+ * Exit code is the violation count (capped at 100), so CI can gate on it.
+ * --fail-on N exits 0 while total <= N, for ratcheting an app down over time.
+ */
+
+import fs from 'fs';
+import path from 'path';
+
+const SINK_FILES = ['CSSVarSink.js', 'cssVarSink.js'];
+const SKIP_DIRS = new Set(['node_modules', '.git', 'dist', 'build', '.backups', 'coverage', 'browser']);
+const SKIP_FILE = /\.(min|bundle)\.|\.pre-migrate\.|\.backup$|\.bak$/;
+
+// ---------------------------------------------------------------------------
+// Rule definitions
+// ---------------------------------------------------------------------------
+const R1_PATTERNS = [
+    { re: /\.style\s*\.\s*[a-zA-Z]/g,            note: 'direct style property write' },
+    { re: /\.style\s*\.\s*setProperty\s*\(/g,    note: 'setProperty outside sink' },
+    { re: /\.setProperty\s*\(\s*['"`]--/g,       note: 'CSS var write outside sink' },
+    { re: /\.classList\s*\.\s*(add|remove|toggle|replace)\s*\(/g, note: 'classList mutation' },
+    { re: /\.setAttribute\s*\(\s*['"`]style['"`]/g, note: 'style attribute write' },
+    { re: /\.cssText\s*=/g,                      note: 'cssText assignment' },
+    { re: /\.innerHTML\s*=/g,                    note: 'innerHTML assignment' }
+];
+
+const R2_PATTERNS = [
+    { re: /@media[^{]*\{/g,        note: 'media query — breakpoint belongs in pickProfile()' },
+    { re: /calc\s*\(/g,            note: 'calc() — arithmetic belongs in JS' },
+    { re: /(?<![\w-])\d+(\.\d+)?(vw|vh|vmin|vmax)\b/g, note: 'viewport unit — JS should measure' },
+    { re: /clamp\s*\(/g,           note: 'clamp() — ratio belongs in RatioEngine' },
+    { re: /!important/g,           note: '!important — specificity fight' },
+    { re: /:\s*(min|max)-content\b/g, note: 'intrinsic sizing — content measure belongs in JS' }
+];
+
+// prefers-reduced-motion is an accessibility signal, not a layout breakpoint.
+const R2_MEDIA_ALLOW = /@media[^{]*prefers-(reduced-motion|color-scheme)/;
+
+const HEX = /#[0-9a-fA-F]{3,8}\b/g;
+
+// ---------------------------------------------------------------------------
+function walk(dir, out = []) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); }
+    catch { return out; }
+    for (const e of entries) {
+        if (e.name.startsWith('.') && e.name !== '.') continue;
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+            if (!SKIP_DIRS.has(e.name)) walk(full, out);
+        } else if (!SKIP_FILE.test(e.name)) {
+            out.push(full);
+        }
+    }
+    return out;
+}
+
+function lineOf(src, index) {
+    return src.slice(0, index).split('\n').length;
+}
+
+function scan(src, patterns, allow) {
+    const hits = [];
+    for (const { re, note } of patterns) {
+        re.lastIndex = 0;
+        let m;
+        while ((m = re.exec(src)) !== null) {
+            const line = lineOf(src, m.index);
+            const text = src.split('\n')[line - 1]?.trim().slice(0, 90) || '';
+            if (allow && allow.test(m[0])) continue;
+            hits.push({ line, note, snippet: text });
+            if (m.index === re.lastIndex) re.lastIndex++;
+        }
+    }
+    return hits.sort((a, b) => a.line - b.line);
+}
+
+// ---------------------------------------------------------------------------
+// R3 — token hygiene
+// ---------------------------------------------------------------------------
+function auditTokens(files) {
+    const declared = new Map();   // token -> [{file, value}]
+    const byValue = new Map();    // normalized hex -> Set(token)
+    const rawHex = [];            // hex used outside a custom-property declaration
+
+    for (const file of files) {
+        if (!file.endsWith('.css')) continue;
+        const src = fs.readFileSync(file, 'utf8');
+        const lines = src.split('\n');
+
+        lines.forEach((line, i) => {
+            const decl = line.match(/(--[a-zA-Z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\b/);
+            if (decl) {
+                const [, token, value] = decl;
+                const norm = value.toLowerCase();
+                if (!declared.has(token)) declared.set(token, []);
+                declared.get(token).push({ file, value: norm, line: i + 1 });
+                if (!byValue.has(norm)) byValue.set(norm, new Set());
+                byValue.get(norm).add(token);
+                return;
+            }
+            // hex not part of a token declaration
+            const found = line.match(HEX);
+            if (found && !/^\s*(\/\*|\*)/.test(line)) {
+                for (const h of found) {
+                    rawHex.push({ file, line: i + 1, value: h.toLowerCase(), snippet: line.trim().slice(0, 90) });
+                }
+            }
+        });
+    }
+
+    const aliases = [...byValue.entries()]
+        .filter(([, tokens]) => tokens.size > 1)
+        .map(([value, tokens]) => ({ value, tokens: [...tokens].sort() }))
+        .sort((a, b) => b.tokens.length - a.tokens.length);
+
+    const redefined = [...declared.entries()]
+        .filter(([, defs]) => new Set(defs.map(d => d.value)).size > 1)
+        .map(([token, defs]) => ({ token, values: defs }));
+
+    return { declared, aliases, rawHex, redefined };
+}
+
+// ---------------------------------------------------------------------------
+function main() {
+    const args = process.argv.slice(2);
+    const root = args.find(a => !a.startsWith('--')) || '.';
+    const asJson = args.includes('--json');
+    const quiet = args.includes('--quiet');
+    const failIdx = args.indexOf('--fail-on');
+    const failOn = failIdx > -1 ? Number(args[failIdx + 1]) : 0;
+
+    const files = walk(root);
+    const report = { root, r1: [], r2: [], r3: null, totals: {} };
+
+    for (const file of files) {
+        const rel = path.relative(root, file);
+        const base = path.basename(file);
+        let src;
+        try { src = fs.readFileSync(file, 'utf8'); } catch { continue; }
+
+        if (/\.(js|mjs|cjs)$/.test(file)) {
+            if (SINK_FILES.includes(base)) continue;
+            const hits = scan(src, R1_PATTERNS);
+            if (hits.length) report.r1.push({ file: rel, hits });
+        }
+
+        if (file.endsWith('.css')) {
+            const hits = scan(src, R2_PATTERNS).filter(h =>
+                !(h.note.startsWith('media query') && R2_MEDIA_ALLOW.test(h.snippet)));
+            if (hits.length) report.r2.push({ file: rel, hits });
+        }
+    }
+
+    report.r3 = auditTokens(files);
+
+    const r1n = report.r1.reduce((s, f) => s + f.hits.length, 0);
+    const r2n = report.r2.reduce((s, f) => s + f.hits.length, 0);
+    const r3n = report.r3.aliases.length + report.r3.rawHex.length + report.r3.redefined.length;
+    report.totals = { r1: r1n, r2: r2n, r3: r3n, all: r1n + r2n + r3n,
+                      filesScanned: files.length,
+                      sinkPresent: files.some(f => SINK_FILES.includes(path.basename(f))) };
+
+    if (asJson) {
+        const out = {
+            ...report,
+            r3: {
+                tokensDeclared: report.r3.declared.size,
+                aliases: report.r3.aliases,
+                redefined: report.r3.redefined,
+                rawHexCount: report.r3.rawHex.length,
+                rawHex: report.r3.rawHex.slice(0, 50)
+            }
+        };
+        console.log(JSON.stringify(out, null, 2));
+    } else {
+        const bar = '─'.repeat(64);
+        console.log(`\n${bar}\nRODUX CONFORMANCE  ${path.resolve(root)}\n${bar}`);
+        console.log(`files scanned      ${report.totals.filesScanned}`);
+        console.log(`CSSVarSink.js      ${report.totals.sinkPresent ? 'present' : 'ABSENT  <- first-gen'}`);
+        console.log(`\n  R1 DOM writes outside sink   ${String(r1n).padStart(4)}`);
+        console.log(`  R2 layout decisions in CSS   ${String(r2n).padStart(4)}`);
+        console.log(`  R3 token hygiene             ${String(r3n).padStart(4)}`);
+        console.log(`  ${''.padEnd(28, ' ')}${String(report.totals.all).padStart(4)}  total\n`);
+
+        if (!quiet) {
+            if (r1n) {
+                console.log(`${bar}\nR1 — DOM writes outside CSSVarSink.js\n${bar}`);
+                for (const f of report.r1.sort((a, b) => b.hits.length - a.hits.length)) {
+                    console.log(`\n  ${f.file}  (${f.hits.length})`);
+                    for (const h of f.hits.slice(0, 6)) {
+                        console.log(`    ${String(h.line).padStart(4)}  ${h.note}`);
+                        console.log(`          ${h.snippet}`);
+                    }
+                    if (f.hits.length > 6) console.log(`    ... ${f.hits.length - 6} more`);
+                }
+            }
+            if (r2n) {
+                console.log(`\n${bar}\nR2 — layout decisions inside CSS\n${bar}`);
+                for (const f of report.r2) {
+                    console.log(`\n  ${f.file}  (${f.hits.length})`);
+                    for (const h of f.hits) {
+                        console.log(`    ${String(h.line).padStart(4)}  ${h.note}`);
+                    }
+                }
+            }
+            const { aliases, rawHex, redefined, declared } = report.r3;
+            console.log(`\n${bar}\nR3 — token hygiene\n${bar}`);
+            console.log(`  colour tokens declared   ${declared.size}`);
+            console.log(`  distinct values aliased  ${aliases.length}`);
+            console.log(`  raw hex outside tokens   ${rawHex.length}`);
+            console.log(`  tokens redefined         ${redefined.length}`);
+            if (aliases.length) {
+                console.log(`\n  Two or more names for one value:`);
+                for (const a of aliases) {
+                    console.log(`    ${a.value}   ${a.tokens.join('  ')}`);
+                }
+            }
+            if (redefined.length) {
+                console.log(`\n  Token defined with conflicting values (theme blocks are expected):`);
+                for (const r of redefined.slice(0, 12)) {
+                    const vals = [...new Set(r.values.map(v => v.value))].join(' ');
+                    console.log(`    ${r.token.padEnd(22)} ${vals}`);
+                }
+            }
+            if (rawHex.length) {
+                console.log(`\n  Raw hex outside a token declaration (first 12):`);
+                for (const h of rawHex.slice(0, 12)) {
+                    console.log(`    ${path.basename(h.file)}:${h.line}  ${h.value}   ${h.snippet}`);
+                }
+            }
+        }
+        console.log('');
+    }
+
+    const total = report.totals.all;
+    process.exit(total <= failOn ? 0 : Math.min(total, 100));
+}
+
+main();
+
+================================================================================
+FILE PATH: tools/smoke.mjs
+LINES: 451   BYTES: 19316   SHA256: 7f206312494642cc
+--------------------------------------------------------------------------------
+#!/usr/bin/env node
+// ---------------------------------------------------------------------------
+// 0KEY — SMOKE TESTS
+// path: tools/smoke.mjs
+//
+// Covers the compute layer and — new in this pass — the codex contract:
+// palette, themes, geometry, and the pages that consume them. Every failure
+// mode this project actually hit is asserted here.
+// ---------------------------------------------------------------------------
+
+import { readFileSync, existsSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
+const ROOT = join(__dirname, '..');
+const R = p => join(ROOT, p);
+
+const RED = '\x1b[31m', GRN = '\x1b[32m', DIM = '\x1b[2m', OFF = '\x1b[0m';
+let passed = 0, failed = 0;
+
+const G = name => console.log(`\n${DIM}${name}${OFF}`);
+function ok(desc, cond, detail = '') {
+  if (cond) { passed++; console.log(`${GRN}  ok${OFF}  ${desc}`); }
+  else { failed++; console.log(`${RED}FAIL${OFF}  ${desc}${detail ? '  — ' + detail : ''}`); }
+}
+const eq = (d, a, b) => ok(d, a === b, `got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`);
+const flush = ms => new Promise(r => setTimeout(r, ms));
+
+const RUNTIME_TOKENS = new Set(['--app-w', '--app-h', '--x', '--y', '--active', '--char']);
+
+// ─── REPO STRUCTURE ─────────────────────────────────────────────────────────
+
+G('repo structure');
+{
+  for (const p of [
+    'server.js', 'package.json',
+    'data/codex.json', 'data/bash_kata.json', 'data/js_kata.json',
+    'public/index.html', 'public/dojo.html', 'public/arcade.html',
+    'public/palette.css', 'public/key.css', 'tools/browser/probe.js',
+    'public/core/Lattice.js', 'public/core/StateJS.js', 'public/core/KataEngine.js',
+    'public/sink/CSSVarSink.js', 'public/sink/IndexSink.js',
+    'public/sink/ArcadeSink.js', 'public/sink/KataSink.js',
+    'tools/gen-codex.mjs', 'tools/rodux-conform.mjs'
+  ]) ok(p, existsSync(R(p)));
+
+  ok('no legacy style.css', !existsSync(R('public/style.css')));
+  ok('no legacy dojo.css', !existsSync(R('public/dojo.css')));
+}
+
+// ─── PALETTE ────────────────────────────────────────────────────────────────
+
+const paletteCss = readFileSync(R('public/palette.css'), 'utf8');
+const paletteDecls = [...paletteCss.matchAll(/(--p-[\w-]+)\s*:\s*([^;]+);/g)]
+  .map(m => ({ name: m[1], value: m[2].trim().toLowerCase() }));
+const paletteNames = new Set(paletteDecls.map(d => d.name));
+
+G('palette — one name per value, one value per name');
+{
+  ok('palette declares tokens', paletteDecls.length > 0);
+
+  const dupNames = paletteDecls.map(d => d.name)
+    .filter((n, i, a) => a.indexOf(n) !== i);
+  ok('no token declared twice', dupNames.length === 0, [...new Set(dupNames)].join(', '));
+
+  const byValue = new Map();
+  for (const d of paletteDecls) {
+    if (!byValue.has(d.value)) byValue.set(d.value, []);
+    byValue.get(d.value).push(d.name);
+  }
+  const aliased = [...byValue.entries()].filter(([, n]) => n.length > 1);
+  ok('no two names share a value', aliased.length === 0,
+    aliased.map(([v, n]) => `${v}: ${n.join(' ')}`).join(' | '));
+
+  ok('palette declares no role token', !/--c-[\w-]+\s*:/.test(paletteCss));
+}
+
+// ─── CODEX CONTRACT ─────────────────────────────────────────────────────────
+
+const keyCodex = JSON.parse(readFileSync(R('data/codex.json'), 'utf8'));
+
+G('codex.json — schema and structure');
+{
+  eq('project', keyCodex._meta?.project, '0KEY');
+  eq('schema', keyCodex._meta?.schema, 'KEY_LATTICE_V1');
+  ok('declares geometry', typeof keyCodex.geometry === 'object');
+  ok('declares themes', typeof keyCodex.themes === 'object');
+  ok('declares modules', typeof keyCodex.modules === 'object');
+}
+
+const themeNames = Object.keys(keyCodex.themes);
+const roleKeys = new Set(Object.keys(keyCodex.themes[themeNames[0]]));
+
+G('codex.json — every theme carries the identical role set');
+{
+  for (const t of themeNames) {
+    const keys = Object.keys(keyCodex.themes[t]);
+    const missing = [...roleKeys].filter(k => !keys.includes(k));
+    const extra = keys.filter(k => !roleKeys.has(k));
+    ok(`theme "${t}" has no missing role`, missing.length === 0, missing.join(', '));
+    ok(`theme "${t}" has no stray role`, extra.length === 0, extra.join(', '));
+  }
+}
+
+G('codex.json — every role resolves to a declared palette token');
+{
+  const broken = [];
+  const referenced = new Set();
+  for (const t of themeNames) {
+    for (const [role, val] of Object.entries(keyCodex.themes[t])) {
+      const m = /^var\(\s*(--p-[\w-]+)\s*\)$/.exec(val.trim());
+      if (!m) { broken.push(`${t}.${role} = ${val}`); continue; }
+      referenced.add(m[1]);
+      if (!paletteNames.has(m[1])) broken.push(`${t}.${role} -> ${m[1]} undeclared`);
+    }
+  }
+  ok('every role maps to an existing palette token', broken.length === 0, broken.join(' | '));
+
+  const orphans = [...paletteNames].filter(n => !referenced.has(n));
+  ok('no palette token is unused', orphans.length === 0, orphans.join(', '));
+}
+
+G('codex.json — every module names a theme that exists');
+{
+  for (const [name, entry] of Object.entries(keyCodex.modules)) {
+    ok(`module "${name}" -> theme "${entry.theme}"`, themeNames.includes(entry.theme));
+  }
+}
+
+// ─── STYLESHEET ─────────────────────────────────────────────────────────────
+
+const keyCss = readFileSync(R('public/key.css'), 'utf8');
+
+G('key.css — declares nothing, references only what is stamped');
+{
+  const hex = keyCss.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
+  ok('zero hex literals', hex.length === 0, hex.join(', '));
+
+  const declared = keyCss.match(/^\s*--[\w-]+\s*:/gm) || [];
+  ok('declares no custom property', declared.length === 0, declared.join(', '));
+
+  const known = new Set([
+    ...roleKeys,
+    ...Object.keys(keyCodex.geometry),
+    ...Object.keys(keyCodex.arcade ?? {}),
+    ...RUNTIME_TOKENS
+  ]);
+  const used = [...new Set([...keyCss.matchAll(/var\(\s*(--[\w-]+)/g)].map(m => m[1]))];
+  const unknown = used.filter(n => !known.has(n));
+  ok(`all ${used.length} referenced tokens are stamped somewhere`,
+    unknown.length === 0, unknown.join(', '));
+
+  const unused = [...roleKeys].filter(r => !used.includes(r));
+  ok('no role token is unused', unused.length === 0, unused.join(', '));
+}
+
+// ─── PAGES ──────────────────────────────────────────────────────────────────
+// This group is the one that would have caught a foreign index.html.
+
+G('pages — identity, stylesheets, and sink wiring');
+{
+  const pages = [
+    { file: 'public/index.html',  sink: 'IndexSink.js' },
+    { file: 'public/arcade.html', sink: 'ArcadeSink.js' },
+    { file: 'public/dojo.html',   sink: 'KataSink.js' }
+  ];
+
+  for (const { file, sink } of pages) {
+    const html = readFileSync(R(file), 'utf8');
+    const tag = file.split('/').pop();
+
+    const title = /<title>([\s\S]*?)<\/title>/.exec(html)?.[1] ?? '';
+    ok(`${tag} title carries >KEY<`, title.includes('>KEY<'), title);
+
+    const links = [...html.matchAll(/<link[^>]+href="([^"]+)"/g)].map(m => m[1]);
+    ok(`${tag} links palette.css`, links.includes('palette.css'), links.join(', '));
+    ok(`${tag} links key.css`, links.includes('key.css'), links.join(', '));
+    eq(`${tag} links exactly two sheets`, links.length, 2);
+
+    const scripts = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m => m[1]);
+    eq(`${tag} loads exactly one module`, scripts.length, 1);
+    ok(`${tag} loads sink/${sink}`, scripts[0] === `sink/${sink}`, scripts.join(', '));
+    ok(`${tag} sink exists on disk`, existsSync(R(`public/${scripts[0]}`)));
+
+    const inline = html.match(/\sstyle="[^"]*"/g) || [];
+    ok(`${tag} has no inline style attribute`, inline.length === 0, inline.slice(0, 3).join(' '));
+
+    const handlers = html.match(/\son(click|mouseover|mouseout|error|load)="/g) || [];
+    ok(`${tag} has no inline event handler`, handlers.length === 0, handlers.join(' '));
+
+    ok(`${tag} is 0KEY, not another project`,
+      !/Interstellar|TSATELIER|landing\.css/.test(html));
+  }
+}
+
+// ─── KATA DATA ──────────────────────────────────────────────────────────────
+
+G('kata data — shape and typing traps');
+{
+  for (const f of ['data/bash_kata.json', 'data/js_kata.json']) {
+    const d = JSON.parse(readFileSync(R(f), 'utf8'));
+    const tag = f.split('/').pop();
+    eq(`${tag} declares RODUX_KATA`, d._meta?.type, 'RODUX_KATA');
+    ok(`${tag} names a module`, typeof d._meta?.module === 'string' && d._meta.module.length > 0);
+    ok(`${tag} forms is a non-empty array`, Array.isArray(d.forms) && d.forms.length > 0);
+    ok(`${tag} every form is a non-empty string`,
+      d.forms.every(s => typeof s === 'string' && s.length > 0));
+    const trailing = d.forms.filter(s => s !== s.trimEnd());
+    ok(`${tag} no form has trailing whitespace`, trailing.length === 0, trailing.join(' | '));
+    ok(`${tag} no form contains a tab`, d.forms.every(s => !s.includes('\t')));
+    ok(`${tag} forms are unique`, new Set(d.forms).size === d.forms.length);
+  }
+}
+
+// ─── GENERATED CODEX ────────────────────────────────────────────────────────
+
+G('0key_codex.json-r — current with disk');
+{
+  const p = R('0key_codex.json-r');
+  ok('generated codex exists  (npm run codex)', existsSync(p));
+  if (existsSync(p)) {
+    const c = JSON.parse(readFileSync(p, 'utf8'));
+    eq('schema', c._meta?.schema, 'CODEX_SCHEMA_V1');
+
+    const mPaths = c._meta.manifest.map(m => m.path).sort();
+    const pPaths = Object.keys(c.payload).sort();
+    ok('manifest and payload agree', mPaths.join('|') === pPaths.join('|'));
+
+    const drift = c._meta.manifest.filter(m => {
+      if (!existsSync(R(m.path))) return true;
+      const sha = createHash('sha256').update(readFileSync(R(m.path), 'utf8')).digest('hex').slice(0, 16);
+      return sha !== m.sha256;
+    }).map(m => m.path);
+    ok('codex matches disk  (if this fails: npm run codex)', drift.length === 0, drift.join(', '));
+  }
+}
+
+// ─── LATTICE ────────────────────────────────────────────────────────────────
+
+const { Lattice, lattice } = await import('../public/core/Lattice.js');
+
+G('Lattice — the bus');
+{
+  const bus = new Lattice();
+  let seen; bus.on('X', p => { seen = p; }); bus.dispatch('X', 42);
+  eq('payload is delivered', seen, 42);
+
+  let n = 0; bus.on('Y', () => n++); bus.on('Y', () => n++); bus.dispatch('Y');
+  eq('every listener on a channel fires', n, 2);
+
+  let leaked = false; bus.on('A', () => { leaked = true; }); bus.dispatch('B');
+  eq('channels are isolated', leaked, false);
+
+  let threw = false;
+  try { bus.dispatch('NOBODY_LISTENING', 1); } catch { threw = true; }
+  eq('dispatch to an empty channel is a no-op', threw, false);
+
+  const fresh = new Lattice();
+  let cross = false; fresh.on('X', () => { cross = true; }); bus.dispatch('X', 1);
+  eq('instances do not share listeners', cross, false);
+}
+
+// ─── STATEJS ────────────────────────────────────────────────────────────────
+
+const { stateJS } = await import('../public/core/StateJS.js');
+const { kataEngine } = await import('../public/core/KataEngine.js');
+
+G('StateJS — boot shape');
+{
+  eq('ten nodes in the pool', stateJS.state.nodes.length, 10);
+  eq('not playing at boot', stateJS.state.isPlaying, false);
+  eq('ten misses allowed', stateJS.state.maxMisses, 10);
+  ok('every node starts inactive', stateJS.state.nodes.every(n => n.active === 0));
+}
+
+G('StateJS — VIEWPORT_SYNC is the only dimension source');
+{
+  lattice.dispatch('VIEWPORT_SYNC', { w: 640, h: 480 });
+  eq('width syncs', stateJS.state.viewportWidth, 640);
+  eq('height syncs', stateJS.state.viewportHeight, 480);
+}
+
+G('StateJS — spawn');
+{
+  lattice.dispatch('INIT_GAME');
+  eq('run is live', stateJS.state.isPlaying, true);
+  eq('score resets', stateJS.state.score, 0);
+  eq('misses reset', stateJS.state.missed, 0);
+  eq('pool cleared', stateJS.state.nodes.filter(n => n.active === 1).length, 0);
+
+  lattice.dispatch('SPAWN');
+  const live = stateJS.state.nodes.filter(n => n.active === 1);
+  eq('one node spawned', live.length, 1);
+  const n = live[0];
+  eq('spawns above the ceiling', n.y, -40);
+  eq('spawns falling', n.status, 'falling');
+  ok('spawn x is inside the viewport', n.x >= 0 && n.x <= 600, `x=${n.x}`);
+  ok('spawn char is A-Z', /^[A-Z]$/.test(n.char), n.char);
+
+  for (let i = 0; i < 25; i++) lattice.dispatch('SPAWN');
+  eq('pool caps at ten', stateJS.state.nodes.filter(n => n.active === 1).length, 10);
+}
+
+G('StateJS — hits score, non-matches do not');
+{
+  lattice.dispatch('INIT_GAME');
+  lattice.dispatch('SPAWN');
+  const t = stateJS.state.nodes.find(n => n.active === 1);
+  lattice.dispatch('KEY_PRESS', t.char);
+  eq('a hit scores ten', stateJS.state.score, 10);
+  eq('the struck node is marked hit', t.status, 'hit');
+  const miss = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').find(c => c !== t.char);
+  lattice.dispatch('KEY_PRESS', miss);
+  eq('a non-match does not score', stateJS.state.score, 10);
+}
+
+await flush(90);
+
+G('StateJS — a node past the floor is a miss');
+{
+  lattice.dispatch('INIT_GAME');
+  lattice.dispatch('VIEWPORT_SYNC', { w: 640, h: 100 });
+  lattice.dispatch('SPAWN');
+  lattice.dispatch('TICK', 1000);
+  eq('the miss is counted', stateJS.state.missed, 1);
+  eq('the node is retired', stateJS.state.nodes.filter(n => n.active === 1).length, 0);
+}
+
+G('StateJS — the run ends at ten misses');
+{
+  lattice.dispatch('INIT_GAME');
+  lattice.dispatch('VIEWPORT_SYNC', { w: 640, h: 100 });
+  for (let i = 0; i < 10; i++) lattice.dispatch('SPAWN');
+  eq('ten in flight', stateJS.state.nodes.filter(n => n.active === 1).length, 10);
+  lattice.dispatch('TICK', 1000);
+  eq('ten misses recorded', stateJS.state.missed, 10);
+  eq('the run stops', stateJS.state.isPlaying, false);
+  const before = stateJS.state.missed;
+  lattice.dispatch('TICK', 1000);
+  eq('a stopped run ignores ticks', stateJS.state.missed, before);
+}
+
+// ─── KATAENGINE ─────────────────────────────────────────────────────────────
+
+G('KataEngine — INIT_DOJO');
+{
+  lattice.dispatch('SET_MODE', 'shaolin');
+  lattice.dispatch('INIT_DOJO', ['ab', 'cd']);
+  eq('dojo is active', kataEngine.state.isActive, true);
+  eq('starts at form zero', kataEngine.state.currentFormIdx, 0);
+  eq('starts at char zero', kataEngine.state.currentCharIdx, 0);
+  eq('mistakes reset', kataEngine.state.totalMistakes, 0);
+  eq('no reps owed', kataEngine.state.repsRequired, 0);
+  eq('mode is shaolin', kataEngine.state.mode, 'shaolin');
+}
+
+G('KataEngine — the first character is never skipped');
+{
+  lattice.dispatch('INIT_DOJO', ['chmod +x setup.sh']);
+  const s = kataEngine.state;
+  const form = s.forms[s.currentFormIdx];
+  const idx = s.currentCharIdx;
+  eq('cursor sits on index zero', idx, 0);
+  eq('typed slice is empty', form.slice(0, idx), '');
+  eq('cursor character is the first', form[idx], 'c');
+  eq('typed + cursor + untyped reconstructs the form',
+    form.slice(0, idx) + form[idx] + form.slice(idx + 1), form);
+}
+
+G('KataEngine — correct keys advance');
+{
+  lattice.dispatch('INIT_DOJO', ['ab', 'cd']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  eq('cursor advances', kataEngine.state.currentCharIdx, 1);
+  lattice.dispatch('KEY_PRESS', 'b');
+  eq('form completes and index advances', kataEngine.state.currentFormIdx, 1);
+  eq('cursor rewinds for the new form', kataEngine.state.currentCharIdx, 0);
+}
+
+G('KataEngine — modifier keys are neither hits nor misses');
+{
+  lattice.dispatch('INIT_DOJO', ['ab']);
+  lattice.dispatch('KEY_PRESS', 'Shift');
+  lattice.dispatch('KEY_PRESS', 'ArrowLeft');
+  eq('no mistake recorded', kataEngine.state.totalMistakes, 0);
+  eq('cursor unmoved', kataEngine.state.currentCharIdx, 0);
+}
+
+G('KataEngine — shaolin resets the form and demands four reps');
+{
+  lattice.dispatch('SET_MODE', 'shaolin');
+  lattice.dispatch('INIT_DOJO', ['abc']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'x');
+  eq('the mistake is counted', kataEngine.state.totalMistakes, 1);
+  eq('cursor resets to zero', kataEngine.state.currentCharIdx, 0);
+  eq('four reps are owed', kataEngine.state.repsRequired, 4);
+}
+
+G('KataEngine — forgiving mode counts but holds position');
+{
+  lattice.dispatch('SET_MODE', 'forgiving');
+  lattice.dispatch('INIT_DOJO', ['abc']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'x');
+  eq('the mistake is counted', kataEngine.state.totalMistakes, 1);
+  eq('cursor holds', kataEngine.state.currentCharIdx, 1);
+  eq('no reps are owed', kataEngine.state.repsRequired, 0);
+}
+
+G('KataEngine — reps are served before the form is released');
+{
+  let completed = false;
+  lattice.on('DOJO_COMPLETE', () => { completed = true; });
+  lattice.dispatch('SET_MODE', 'shaolin');
+  lattice.dispatch('INIT_DOJO', ['ab']);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'x');
+  eq('four reps owed after the miss', kataEngine.state.repsRequired, 4);
+  for (let rep = 0; rep < 3; rep++) {
+    lattice.dispatch('KEY_PRESS', 'a');
+    lattice.dispatch('KEY_PRESS', 'b');
+  }
+  eq('three served, one owed', kataEngine.state.repsRequired, 1);
+  eq('still on the same form', kataEngine.state.currentFormIdx, 0);
+  lattice.dispatch('KEY_PRESS', 'a');
+  lattice.dispatch('KEY_PRESS', 'b');
+  eq('debt cleared', kataEngine.state.repsRequired, 0);
+  eq('dojo closes on the last form', kataEngine.state.isActive, false);
+  ok('DOJO_COMPLETE fired', completed);
+}
+
+G('KataEngine — a closed dojo ignores input');
+{
+  const before = kataEngine.state.totalMistakes;
+  lattice.dispatch('KEY_PRESS', 'z');
+  eq('no mistake recorded after close', kataEngine.state.totalMistakes, before);
+}
+
+// ─── TALLY ──────────────────────────────────────────────────────────────────
+
+const total = passed + failed;
+console.log('\n' + '─'.repeat(64));
+console.log(failed === 0
+  ? `${GRN}SMOKE PASS${OFF}  ${passed}/${total}`
+  : `${RED}SMOKE FAIL${OFF}  ${passed}/${total}   ${failed} failing`);
+console.log('─'.repeat(64) + '\n');
+
+process.exit(failed === 0 ? 0 : 1);
+
